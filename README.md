@@ -13,6 +13,7 @@ Un tampon mémoire paramétrable est utilisé pour stocker les données devant �
 Le code peut être chargé sur l'arduino Mega avec l'IDE Arduino.
 NOTE: Compte tenu des ressources mémoires nécessaires, le choix d'un Arduino Mega est requis.
 Pour la communication MQTT avec SSL il est nécessaire de charger au préalable les clés de cryptage dans le module SIM 7600G depuis un serveur FTP.
+Les documents relatifs à la réalisation matérielle de la station sont accessible sur hal, notamment dans le document [Tutoriel](https://hal.science/hal-05162126v2)
 
 ## Usage
 Il est nécessaire de paramétrer un certain nombre de valeurs dans les fichiers suivants :
