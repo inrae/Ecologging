@@ -1,15 +1,18 @@
-# Ecologging_meteo
+# Ecologging
+Ecologging est un projet de station instrumentée connectée, fiable et évolutive.
+
+Ecologging is a project for a connected, reliable and scalable instrumented station.
 
 ## Description
-Le projet ECOLOGGING a vu le jour pour proposer une solution alternative aux stations commerciales déjà existantes. La station ECOLOGGING est moins chère, et permet de relever plusieurs paramètres météorologiques tels que la température, l’humidité relative, la vitesse du vent, son orientation, le rayonnement, et le cumul de pluie. Tout en gardant un rapport qualité coût de la donnée très intéressant. Cette station est modulable et déplaçable.
-La station utilise comme microcontrolleur un ARDUINO MEGA 2560 associé à une carte SD pour le stockage local des données et un HAT SIM 7600G 4G pour la transmission 4G.
+Le projet ECOLOGGING a vu le jour pour proposer une solution alternative aux stations commerciales déjà existantes. La station ECOLOGGING est moins chère, et permet de relever plusieurs paramètres météorologiques (Température, Humidité relative, Vitesse et orientation du vent, Rayonnement, Luminosité et Cumul de pluie) mais aussi humidité du sol, hauteur de nappe, etc. Tout en gardant un rapport qualité coût de la donnée très intéressant, une attention particulière a été portée sur la modularité, l'accessibilité, la réparabilité et l'open-source.
+La station utilise comme microcontrolleur un ARDUINO MEGA 2560 associé à une carte SD pour le stockage local des données, des capteurs choisis pour leur bon rapport coût/performance et un HAT SIM 7600G 4G pour la transmission 4G.
 La transmission utilise le protocole MQTT avec support SSL et authentification login/password.
 Un tampon mémoire paramétrable est utilisé pour stocker les données devant être transmises en cas de perte temporaire du réseau 4G.
 
-The ECOLOGGING project was created to offer an alternative to existing commercial weather stations. The ECOLOGGING station is less expensive and allows for the recording of several meteorological parameters such as temperature, relative humidity, wind speed, wind direction, solar radiation, and rainfall totals, all while maintaining a very attractive data quality-to-cost ratio. This station is modular and portable.
-The station uses an Arduino Mega 2560 microcontroller, an SD card for local data storage, and a 7600G 4G HAT SIM for 4G transmission.
+The ECOLOGGING project was created to offer an alternative to existing commercial weather stations. The ECOLOGGING station is less expensive and allows for the measurement of several meteorological parameters (temperature, relative humidity, wind speed and direction, radiation, brightness, and rainfall totals), as well as soil moisture, groundwater level, and more. While maintaining a very attractive data quality-to-cost ratio, particular attention has been paid to modularity, accessibility, repairability, and open-source principles.
+The station uses an Arduino Mega 2560 microcontroller paired with an SD card for local data storage, sensors chosen for their cost/performance ratio, and a 7600G 4G HAT SIM for 4G transmission.
 Transmission uses the MQTT protocol with SSL support and login/password authentication.
-A configurable memory buffer is used to store data to be transmitted in case of a temporary loss of the 4G network.
+A configurable memory buffer is used to store data to be transmitted in case of a temporary loss of the 4G.
 
 ## Badges
 ![Demo Image](images/station_meteo_DIY.png)
@@ -44,8 +47,14 @@ _ SIM7600MQTTparam.h > server connection information settings
 _ buffer_pile.h > number of data points kept in buffer memory (NUM_BUFFERED)
 _ sensor_meteo.h > sensor settings (GPIO used)
 
+## Project information
+Toute la documentation est disponible sur HAL [https://hal-lara.archives-ouvertes.fr/search/index?q=ecologging](https://hal-lara.archives-ouvertes.fr/search/index?q=ecologging)
+
+All documentation is available on HAL [https://hal-lara.archives-ouvertes.fr/search/index?q=ecologging](https://hal-lara.archives-ouvertes.fr/search/index?q=ecologging)
+
 ## Support
 pierre.bordenave@inrae.fr
+philippe.chaumeil@inrae.fr
 
 ## Roadmap
 Support for Lorawan connectivity
@@ -54,7 +63,6 @@ Support for Satellite connectivity
 ## Authors and acknowledgment
 Pierre Bordenave (UEFP - INRAe Cestas Pierroton) pierre.bordenave@inrae.fr
 Philippe Chaumeil (Biogeco - INRAe Cestas Pierroton) philippe.chaumeil@inrae.fr
-
 
 ## License
 GNU GPL
