@@ -1,7 +1,7 @@
 #ifndef SIM7600MQTTparam_h
 #define SIM7600MQTTparam_h
 
-  #define CLIENT_ID "st_name"                       // Indentifiant du client pour le protocole MQTT
+  #define CLIENT_ID "st_name"                       // Client identifier for the MQTT protocol
   #define SERVER_URL "mqtt.your.server.fr"
   #define PORT "8883"
   #define LOGIN "login"

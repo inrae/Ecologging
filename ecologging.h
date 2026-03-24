@@ -1,14 +1,14 @@
-#include "config.h" //fichier de configuration
+#include "config.h" //configuration file
 
 
-//+++++++++++++++++++++++++++++++++enregistrement sur carte+++++++++++++++++++++++++++
-Sd2Card card;//creation SD
-File fichier20s; //creation SD
+//++++++++++++++++++++ card recording +++++++++++++++++++++++++++
+Sd2Card card; //instantiates SD
+File fichier20s; //instantiates file
 File MoyH;
-const int chipSelect = 10;//creation SD avt 4
-#define sdCardPinChipSelect   53 //SD pour MEGA  53 correspond au PIN53
+const int chipSelect = 10;  //pinout before 4
+#define sdCardPinChipSelect   53 //SD pinout MEGA  53 => PIN53
 
-//+++++++++++++++++++++++++++++++++RTC+++++++++++++++++++++++++++    
+//++++++++++++++++++++++++++++++++ RTC ++++++++++++++++++++++++++    
 RTC_DS3231 RTC;//RTC DS3231
 
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};//RTC DS3231
@@ -18,25 +18,25 @@ char mydatetime[20] = "\0";
 unsigned long DS3231RTC_update_interval = DS3231RTC_short_update_interval; //start with short interval
 unsigned long DS3231RTC_update = 0;
 
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//+++++++++++++++ Fonctions écriture fichier ++++++++++++++++++++++++++
-//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++ File writing functions ++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-//Fonction initialisation pour enregistrement microSD
-  //ATTENTION necessite l'appel à Wire.begin(); dans le setup du programme
+//Initialization function for microSD recording
+  //WARNING: This requires a call to Wire.begin(); in the program's setup.
 void initmicroSD(){
-   if (!SD.begin(sdCardPinChipSelect)) { //SD pour MEGA 
+   if (!SD.begin(sdCardPinChipSelect)) { //SD for MEGA 
     Serial.println(F("No microSD found!"));
     while (1);
   }
-  pinMode(53, OUTPUT);//SD pour MEGA
+  pinMode(sdCardPinChipSelect, OUTPUT);//SD pour MEGA
 }
 
-//++++++++++++++++++++++++++++++++++++++++
-//++++++++  Fonctions horaire ++++++++++++
-//++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++
+//++++++++  Time functions ++++++++++++
+//+++++++++++++++++++++++++++++++++++++
 
-//Fonction initialisation et lowpower RTC
+//Initialization function and low-power RTC
 void initRTC(){
 
   if (! RTC.begin()) { //RTC DS3231
@@ -44,12 +44,12 @@ void initRTC(){
     while (1); delay(10);
   }
   // following line sets the RTC to the date & time this sketch was compiled
-  if (RTC.lostPower()) {///fonction ajustement du temps si il y a la perte de l'heure recalage
+  if (RTC.lostPower()) {//time adjustment function if there is a loss of time; recalibration.
     RTC.adjust(DateTime(F(__DATE__), F(__TIME__)));
   }
 }
 
-//mise à jour de l'heure
+//time update
 bool update_RTC(){
   bool debug = true;
   #if MOD_SIM7600
@@ -76,12 +76,12 @@ bool update_RTC(){
   return false;
 }
 
-//formatage du datetime
+//datetime formatting
 void get_formatted_datetime(const DateTime& now, char* datetime, size_t size){
   snprintf(datetime, size, "%02d/%02d/%02d %02d:%02d:%02d", now.year(), now.month(), now.day(), now.hour(), now.minute(), now.second());
 }
 
-//Impression du DateTime formaté sur le port série
+//Printing the formatted DateTime on the serial port
 void printFormatedDateTime(const DateTime& now){
   char buffer[25] = "\0";
   snprintf(buffer, sizeof(buffer), "%02d/%02d/%04d %02d:%02d:%02d ", now.day(), now.month(), now.year(), now.hour(), now.minute(), now.second());

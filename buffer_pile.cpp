@@ -78,7 +78,7 @@ void BUFFER_PILE::debug_cpt(){
   Serial.print(F("#_# buf_CR:"));Serial.println(buf_CR);
 }
 
-//formatatge et chargement date time au format compatible pile/buffer
+//formatting and loading date/time in stack/buffer compatible format
 void BUFFER_PILE::get_formatted_datetime_bufferpile(const Ecoset& dataset, char* datetime){
   const char template_datetime[] = "%02d/%02d/%02d %02d:%02d:%02d";
   char buffer_time[20] = "\0";
@@ -86,7 +86,7 @@ void BUFFER_PILE::get_formatted_datetime_bufferpile(const Ecoset& dataset, char*
   strcpy(datetime, buffer_time);
 }
 
-//calcule et renvoi l'heure UTC à parir de l'heure stockée dans le dataset et l'offset timezone
+//calculates and returns the UTC time based on the time stored in the dataset and the timezone offset
 void BUFFER_PILE::get_formatted_UTC_bufferpile(const Ecoset& dataset, char* utc_datetime){
   DateTime data_date(dataset.year,dataset.month,dataset.day,dataset.hour,dataset.minute,dataset.second);
   DateTime UTC_date;

@@ -1,38 +1,38 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-//## nom des fichiers ##
+//## file names ##
 #define DATA_FILENAME "SAMPLE.csv"
 #define MOY_FILENAME "AVG.csv"
 
 //## acquisition periodicity ##
-const uint8_t SECONDES_CIBLES[] = {0, 20, 40};  //periodicité acquisition donnée
-const uint8_t MINUTES_CIBLES[] = {0};           //periodicité calcul moyenne
+const uint8_t SECONDES_CIBLES[] = {0, 20, 40};  //periodicity given acquisition
+const uint8_t MINUTES_CIBLES[] = {0};           //average calculation periodicity
 
 //## param MQTT ##
 #define MOD_SIM7600 1
-char mytopic[] = "ecolo/meteo/id_station"; // Topic pour le message MQTT nombre caractère 20
+char mytopic[] = "ecolo/meteo/id_station"; // Topic for the MQTT message, number of characters: 20
 
 //## config capteurs ##
-#define MOD_VEML7700 1    //utilisation d'un luxmettre VEML7700
-#define MOD_PYRANO 0      //utilisation d'un pyranometre à la place d'un luxmetre
+#define MOD_VEML7700 1    //use of a VEML7700 lux meter
+#define MOD_PYRANO 0      //use of a pyranometer instead of a luxmeter
 
-#define MOD_BME280 1      //capteur T°, Hum, P°
-#define MOD_SHT31 0       //capteur T°, Hum
-#define MOD_SHT20 0       //capteur T°, Hum
+#define MOD_BME280 1      //sensor T°, Hum, P°
+#define MOD_SHT31 0       //sensor T°, Hum
+#define MOD_SHT20 0       //sensor T°, Hum
 
-#define MOD_PLUIE 1       //pluviometre
+#define MOD_PLUIE 1       //pluviometer
 
-#define MOD_VENT  1       //anemometre Davis
+#define MOD_VENT  1       //anemometer Davis
 
-#define MOD_DS18B20 0     //capteur T° eau  
-#define MOD_ADS_KIT0139 0 //capteur hauteur eau
+#define MOD_DS18B20 0     //sensor water T° 
+#define MOD_ADS_KIT0139 0 //sensor water level
 
-//## divers param ##
-const uint16_t PROF_SONDE_WL = 1000;  //profondeur installation de la sonde de hauteur d'eau en mm
+//## various param ##
+const uint16_t PROF_SONDE_WL = 1000;  //water level probe installation depth in mm
 
 //_____________##### test config #####_________________
-//== Compteur automatique ==
+//== Automatic counter ==
 #define THP_CAPTEUR_COUNT (MOD_BME280 + MOD_SHT31 + MOD_SHT20)
 #if MOD_BME280 && MOD_SHT31
   #define THP_MERGE 1
@@ -40,7 +40,7 @@ const uint16_t PROF_SONDE_WL = 1000;  //profondeur installation de la sonde de h
   #define THP_MERGE 0
 #endif
 
-//== Vérification de cohérence ==
+//== Consistency check ==
 #if THP_CAPTEUR_COUNT == 0
   #warning "ATTENTION : Aucun capteur T°/Hum défini ! cf config.h"
 #elif THP_CAPTEUR_COUNT > 1

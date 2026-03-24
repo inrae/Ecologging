@@ -1,6 +1,8 @@
 #include "WString.h"
 /*
 Capteurs_meteo
+
+Weather sensors
 */
 #include "capteurs_meteo.h"
 
@@ -11,13 +13,13 @@ volatile unsigned long CAPTEURS_METEO::ContactBounceTime;
 
 //+++++++++++ Constructor +++++++++++
 CAPTEURS_METEO::CAPTEURS_METEO(uint16_t WLinstall, uint8_t pin_DS18B20)
-  : sht31(SHT31_ADDRESS, &Wire),   //Initialisation dans la liste d'initialisation
+  : sht31(SHT31_ADDRESS, &Wire),   //Initialization in the initialization list
   oneWire_Teau(pin_DS18B20),
   sensor_Teau(&oneWire_Teau),
   _WLinstall(WLinstall)
 {}
 
-//++++++++++ Valeurs courantes ++++++++++
+//++++++++++ Current values ++++++++++
 float CAPTEURS_METEO::valTemp(){return TempMesure;}
 float CAPTEURS_METEO::valHumid(){return HumidMesure;}
 float CAPTEURS_METEO::valPatm(){return PatmMesure;}
@@ -30,7 +32,7 @@ float CAPTEURS_METEO::valWaterVolt(){return WaterVoltMesure;}
 float CAPTEURS_METEO::valWaterColonne(){return WaterColonneMesure;}
 float CAPTEURS_METEO::valWaterHauteur(){return WaterHauteurMesure;}
 
-//++++++++++ Moyennes ++++++++++
+//++++++++++ Averages ++++++++++
 void CAPTEURS_METEO::resetSommes(){
   SommeT = 0.0;
   SommeHR = 0.0;
@@ -67,15 +69,15 @@ float CAPTEURS_METEO::meanWaterVolt(){if(nbWH > 0){return SommeWV/nbWH;} return 
 float CAPTEURS_METEO::meanWaterColonne(){if(nbWH > 0){return SommeWC/nbWH;} return 0;}
 float CAPTEURS_METEO::meanWaterHauteur(){if(nbWH > 0){return SommeWH/nbWH;} return 0;}
 
-//++++++++++ Cumuls ++++++++++
+//++++++++++ Accumulations ++++++++++
 void CAPTEURS_METEO::resetCumuls(){
   dailyRain = 0.0;                                      // clear daily-rain at midnight
   dailyRain_till_LastHour = 0.0;                        // we do not want negative rain at 01:00
 }
 
 void CAPTEURS_METEO::setHcumulPluvio(){
-  hourlyRain = dailyRain - dailyRain_till_LastHour;      // calculate the last hour's rain
-  dailyRain_till_LastHour = dailyRain;// update the rain till last hour for next calculation
+  hourlyRain = dailyRain - dailyRain_till_LastHour;     // calculate the last hour's rain
+  dailyRain_till_LastHour = dailyRain;                  // update the rain till last hour for next calculation
 }
 
 double CAPTEURS_METEO::cumulHRain(){
@@ -87,47 +89,47 @@ double CAPTEURS_METEO::cumulDRain(){
 }
 
 //++++++++++ VEML7700 ++++++++++
-//Fonction démarrage Rayonnement VEML7700
+//VEML7700 Radiation Start-up Function
 void CAPTEURS_METEO::initVEML7700(){
-  als.begin();//VEML7700
+  als.begin();
 }
 
 //acquisition VEML7700
 void CAPTEURS_METEO::acqVEML7700(){
   als.getALSLux(lux);//VEML7700
   RayMesure = lux;
-  //sommation
+  //summation
   SommeL += RayMesure;
   nbL++;
 
   Serial.print(lux);Serial.print(F(" Lux\t"));
 }
 
-//++++++++++ Pyranomètre Davis 6450 +++++++++
-//Fonction démarrage pyrano
+//++++++++++ Pyranometer Davis 6450 +++++++++
+// Pyrano init function
 void CAPTEURS_METEO::initPyrano(){
   int rawValue = analogRead(PyranoPin);
-  //filtrage si valeur 1023 i.e. capteur non branché et donc valeur de pull up
+  //Filtering if value 1023 i.e. sensor not connected and therefore pull-up value
   if(rawValue == 1023){Serial.print(F("## WARNING ! : Davis pyrano seems not to be connected!"));}
 }
 
-//acquisition pyrano Davis 6450
+// Pyrano Davis 6450 acquisition
 void CAPTEURS_METEO::acqPyrano(){
   int rawValue = analogRead(PyranoPin); // Signal
 
-  //filtrage si valeur 1023 i.e. capteur non branché et donc valeur de pull up
+  // Filtering if value 1023 i.e. sensor not connected and therefore pull-up value
   if(rawValue == 1023){rawValue = 0;}
 
   float voltage = rawValue * (pyrReferenceVoltage / 1023);
   
-  // Correction offset
+  // Offset correction
   float correctedVoltage = voltage - pyrZeroOffset;
   if (correctedVoltage < 0) correctedVoltage = 0;
 
-  // Conversion et calibration
+  // Conversion and calibration
   float rawRadiation = correctedVoltage / pyrSensitivity;
   PyranoMesure = rawRadiation;
-  //sommation
+  // summation
   SommeLW += PyranoMesure;
   nbLW++;
 
@@ -135,7 +137,7 @@ void CAPTEURS_METEO::acqPyrano(){
 }         
 
 //++++++++++ BME280 ++++++++++
-//Fonction initialisation BME280
+// Init function BME280
 void CAPTEURS_METEO::initBME280(){
   if (!bme.begin()) {//BME280
     while (1);
@@ -143,7 +145,7 @@ void CAPTEURS_METEO::initBME280(){
   bme.setTempCal(-1);
 }
 
-//acquisition BME280
+// Acquisition BME280
 void CAPTEURS_METEO::acqBME280(bool Ponly){
   bme.readSensor();
 
@@ -169,7 +171,7 @@ void CAPTEURS_METEO::acqBME280(bool Ponly){
 }
 
 //++++++++++ SHT31 ++++++++++
-//Fonction initialisation SHT31
+// Init function SHT31
 void CAPTEURS_METEO::initSHT31(){
   if(sht31.begin() == false){Serial.println(F("SHT31 device address or reset pb."));}
 
@@ -177,13 +179,13 @@ void CAPTEURS_METEO::initSHT31(){
   Serial.print(stat, HEX);Serial.println();
 }
 
-//acquisition SHT31
+// Acquisition SHT31
 void CAPTEURS_METEO::acqSHT31(){
   if(sht31.isConnected()){
     sht31.read();
     TempMesure = sht31.getTemperature();
     HumidMesure = sht31.getHumidity();
-    //sommation
+    //summation
     SommeT += TempMesure;
     SommeHR += HumidMesure;
     nbT++;
@@ -198,17 +200,17 @@ void CAPTEURS_METEO::acqSHT31(){
 }
 
 //++++++++++ SHT20/SEN0227 ++++++++++
-//Fonction initialisation SHT20
+// Init function SHT20
 void CAPTEURS_METEO::initSHT20(){
   sht20.initSHT20();      //SHT20/SEN0227
   sht20.checkSHT20();     //SHT20/SEN0227
 }
 
-//acquisition SHT20
+// Acquisition SHT20
 void CAPTEURS_METEO::acqSHT20(){
   TempMesure = sht20.readTemperature();   //SHT20/SEN0227
   HumidMesure = sht20.readHumidity();     //SHT20/SEN0227
-  //sommation
+  //summation
   SommeT += TempMesure;
   SommeHR += HumidMesure;
   nbT++;
@@ -218,14 +220,14 @@ void CAPTEURS_METEO::acqSHT20(){
   Serial.print(TempMesure, 1);Serial.print(F("*C T_env sht20\t"));// T en °C
 }
 
-//++++++++++ Pluviomètre bascule ++++++++++
-//Fonction initialisation Pluviomètre
+//++++++++++ Tilting Pluviometer ++++++++++
+// Init function pluviometer
 void CAPTEURS_METEO::initPluvio(){
-  pinMode(RainPin, INPUT);//pluviomètre lecture PIN2
+  pinMode(RainPin, INPUT);//pluviometer read
 }
 
 void CAPTEURS_METEO::acqPluvio(){
-    //Partie comptage de la bascule
+    //counting section
   if ((bucketPositionA==false)&&(digitalRead(RainPin)==HIGH)){
     bucketPositionA=true;
     dailyRain+=bucketAmount;                               // update the daily rain
@@ -236,21 +238,21 @@ void CAPTEURS_METEO::acqPluvio(){
   }
 }
 
-//++++++++++ ANEMOMETRE DAVIS ++++++++++
+//++++++++++ ANEMOMETER DAVIS ++++++++++
 
-//Fonction initialisation Vitesse et orientation du vent
+// Init function Wind speed and direction
 void CAPTEURS_METEO::initVent1(){
-  LastValue = 0;//DAVIS
-  IsSampleRequired = false;//DAVIS
-  TimerCount = 0;//DAVIS
-  Rotations = 0;//DAVIS
+  LastValue = 0;
+  IsSampleRequired = false;
+  TimerCount = 0;
+  Rotations = 0;
 }
 
 void CAPTEURS_METEO::initVent2(){
-  pinMode(WindSensorPin, INPUT);//DAVIS
-  attachInterrupt(digitalPinToInterrupt(WindSensorPin), isr_rotation, FALLING);//DAVIS
-  Timer1.initialize(500000);//DAVIS
-  Timer1.attachInterrupt(isr_timer);//DAVIS
+  pinMode(WindSensorPin, INPUT);
+  attachInterrupt(digitalPinToInterrupt(WindSensorPin), isr_rotation, FALLING);
+  Timer1.initialize(500000);
+  Timer1.attachInterrupt(isr_timer);
 }
 
 // isr routine fr timer interrupt
@@ -330,23 +332,23 @@ void CAPTEURS_METEO::getHeading(int direction) {
       Serial.print(" N");  
 }
 
-//acquisition Vitesse et orientation du vent
+// Speed & Wind direction acquisition
 void CAPTEURS_METEO::acqVent(){
   CAPTEURS_METEO::acqWindDirection();
   if(abs(CalDirection - LastValue) > 5){LastValue = CalDirection;}
   
   DirectionMesure = CalDirection;
-  //sommation
+  //summation
   SommeD += DirectionMesure;
   nbD++;
 
   if(IsSampleRequired){
-    WindSpeed = ((Rotations * 0.1125)*1.60934);//multiplication par 1.60934 pour passer en km/h formule pour calculer la vitesse windspeed : V = P(2.25/2.5) = P * 0.9 
+    WindSpeed = ((Rotations * 0.1125)*1.60934); //Multiply by 1.60934 to convert to km/h. Formula for calculating wind speed: V = P(2.25/2.5) = P * 0.9
     Rotations = 0;
     IsSampleRequired = false;
 
     VitesseMesure = WindSpeed;
-    //sommation
+    //summation
     SommeV += VitesseMesure;
     nbV++;
 
@@ -357,32 +359,32 @@ void CAPTEURS_METEO::acqVent(){
 
 //++++++++++ DS18B20 Soil temperature ++++++++++
 
-//Fonction initialisation DS18B20
+// Init function DS18B20
 void CAPTEURS_METEO::initDS18B20(){
    sensor_Teau.begin();
 }
 
-//acquisition DS18B20
+// Acquisition DS18B20
 void CAPTEURS_METEO::acqDS18B20Teau(){
    sensor_Teau.requestTemperatures();
    TempWaterMesure = sensor_Teau.getTempCByIndex(0);
-   //sommation
+   //summation
    SommeTW += TempWaterMesure;
    nbTW++;
    Serial.print(TempWaterMesure, 2);Serial.print(F("°C TW_env\t"));
  }
 
-//++++++++++ ADS1X15 + sonde water level KIT0139 Franck Perret ++++++++++
+//++++++++++ ADS1X15 + water level probe KIT0139 Franck Perret ++++++++++
 void CAPTEURS_METEO::initADS(){
   ads.begin();
 }
 
-//acquisition ADS avec Kit0139
+// acquisition ADS with Kit0139
 void CAPTEURS_METEO::acqADS_kit0139(){
   float rawADC = ads.readADC_SingleEnded(0);
   WaterVoltMesure = rawADC*0.0001875;
-  WaterColonneMesure = ((1.25*WaterVoltMesure)-1.25)*1000;    //Avec une résistance de précision de 250 ohms alimentation en 5VDC attention même masse
-  WaterHauteurMesure = WaterColonneMesure - _WLinstall;            //3450 pour piezo C5
+  WaterColonneMesure = ((1.25*WaterVoltMesure)-1.25)*1000;    //With a 250 ohm precision resistor, 5VDC power supply, be careful to connect the same ground
+  WaterHauteurMesure = WaterColonneMesure - _WLinstall;            //3450 for piezo C5
   
   //sommation
   SommeWV += WaterVoltMesure;

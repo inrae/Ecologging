@@ -1,5 +1,11 @@
 /*
 SIM7600MQTT
+
+This library only allows sending MQTT messages.
+We make no guarantees.
+
+philippe.chaumeil@inrae.fr _ Univ. Bordeaux, INRAE, BIOGECO, F-33610, Cestas, France
+
 */
 #include "SIM7600MQTT.h"
 
@@ -108,7 +114,7 @@ DateTime *SIM7600MQTT::get_gsm_datetime() {
   // check if datetime retrieve is default or from gsm provider
   if (now.year() == 2080) {
     if (gsm_datetime != nullptr) {
-      delete gsm_datetime;  // Libérer l'ancien objet si nécessaire
+      delete gsm_datetime;  // release old object if necessary
       gsm_datetime = nullptr;
     }
     return nullptr;
@@ -116,9 +122,9 @@ DateTime *SIM7600MQTT::get_gsm_datetime() {
 
   // update or create DateTime global object
   if (gsm_datetime == nullptr) {
-    gsm_datetime = new DateTime(now);  // Allouer une seule fois
+    gsm_datetime = new DateTime(now);  // Allocate only once
   } else {
-    *gsm_datetime = now;  // Mettre à jour l'objet existant
+    *gsm_datetime = now;  // update existing object
   }
 
   return gsm_datetime;
@@ -141,8 +147,8 @@ void SIM7600MQTT::listenSerialSIM7600() {
     if (inByte != -1) {
       char inChar = (char)inByte;
       if ((inChar == '\n') || (inChar == '\r')) {
-        serialBuffer[bufferIndex] = '\0';                              //ajout terminaison chaine
-        if (strlen(serialBuffer) > 0) { scanResponse(serialBuffer); }  //analyse réponse
+        serialBuffer[bufferIndex] = '\0';                              //adding string termination
+        if (strlen(serialBuffer) > 0) { scanResponse(serialBuffer); }  //response analysis
         bufferIndex = 0;
       } else {
         serialBuffer[bufferIndex] = inChar;
@@ -163,12 +169,12 @@ void SIM7600MQTT::scanResponse(char *buffer) {
   bool debug = 1;
   char *result;
   if (debug) { Serial.print(F("buffer:")); Serial.println(buffer); }
-  //recherche "CME" message
+  //search "CME" message
   result = strstr(buffer, "CME");
   if (result != NULL) {
     Serial.print(F("buffer:")); Serial.println(buffer);
   }
-  //recherche ICCID
+  //search ICCID
   result = strstr(buffer, "ICCID");
   if (result != NULL) {
     if (debug) { Serial.print(F("buffer:")); Serial.println(buffer); }
@@ -176,32 +182,32 @@ void SIM7600MQTT::scanResponse(char *buffer) {
     statusError = 0;
     errorCode = 0;
   }
-  // recherche "ERROR"
+  // search "ERROR"
   result = strstr(buffer, "ERROR");
   if (result != NULL) {
     statusError = 1;
     if (debug) { Serial.println(F("found ERROR")); }
   }
-  // recherche "OK"
+  // search "OK"
   result = strstr(buffer, "OK");
   if (result != NULL) {
     statusOk = 1;
     if (debug) { Serial.println(F("found OK")); }
   }
-  //recherche ">"
+  //search ">"
   result = strstr(buffer, ">");
   if (result != NULL) {
     statusOk = 1;
     if (debug) { Serial.println(F("found >")); }
   }
-  // recherche réponse "+XXX"
+  // search response "+XXX"
   result = strstr(buffer, "+C");
   if (result != NULL) {
     if (debug) { Serial.print(F("found motif +C: ")); Serial.println(result); }
-    //recherche code erreur
+    //search error code
     if (strstr(buffer, "START:") != NULL) {
       errorCode = atoi(&result[13]);
-      statusPlus = 1;  //nb: pas plus haut car echo de la commande sur le port serie
+      statusPlus = 1;  //Note: no before because the command is echoed on the serial port
       if (errorCode != 0) {
         statusError = 1;
         Serial.print(F("--scan--")); Serial.print(F("buffer:")); Serial.println(buffer);
@@ -308,7 +314,7 @@ void SIM7600MQTT::setSerialSpeed() {
 bool SIM7600MQTT::dialogCheck() {
   //Serial.println("--dialogCheck--");
 
-  // délais de réponse trop long
+  // response times are too long
   if (requestTimer != 0 && SIM7600ready) {
     if ((millis() - requestTimer) > requestTimerLimit) {
       Serial.println(F("No resp to request"));
@@ -316,7 +322,7 @@ bool SIM7600MQTT::dialogCheck() {
       return false;
     }
   }
-  // réponse port série considérée comme complète si acqRespSIM #2. acqRespSIM #1 signifie que des datas ont déjà été détectées sur port série
+  // Serial port response considered complete if acqRespSIM #2. acqRespSIM #1 means that data has already been detected on the serial port.
   if (serialTimer != 0 && acqRespSIM == 1) {
     // Serial.print("--check serialTimer--");
     // Serial.println(millis() - serialTimer);
@@ -354,7 +360,7 @@ bool SIM7600MQTT::dialogCheck() {
       acqRespSIM = 2;
       requestTimer = 0;
       serialTimer = 0;
-      serialBuffer[bufferIndex] = '\0';  //ajout terminaison chaine
+      serialBuffer[bufferIndex] = '\0';  //adding string termination
       // Serial.println(F("--serial complete--"));
     }
   }
@@ -406,7 +412,7 @@ void SIM7600MQTT::resetCnx() {
   resetAtState();
   resetTimers();
   bufferIndex = 0;
-  processMQTT = 1;  //TODO à veifier
+  processMQTT = 1;  //TODO to check
   closeMQTT = true;
   currentStepCloseMQTT = 1;
   executeStep = true;
@@ -445,7 +451,7 @@ void SIM7600MQTT::resetSearchNetState() {
   netTestTimer = millis();
 }
 
-//-- gestion / verification démarrage SIM7600--
+//-- management / startup verification SIM7600 --
 void SIM7600MQTT::startupSIM() {
   bool debug = 0;
   static unsigned long tempo_HW_start = 0;
@@ -465,7 +471,7 @@ void SIM7600MQTT::startupSIM() {
       }
     }
   
-    if (acqRespSIM == 2 && statusOk) {  // gestion réponse
+    if (acqRespSIM == 2 && statusOk) {  // response management
       //Serial.println(F("--acqRespSIM=2 & statusOk--"));
       if (currentStepSettings == 0) {  //first item
         setSerialSpeed();              //switch to 57600bps
@@ -481,9 +487,9 @@ void SIM7600MQTT::startupSIM() {
       }
       acqRespSIM = 0;
       if (debug) { Serial.print("--startupSIM--"); printSimState();}
-    } else if (currentStepSettings == 0 && millis() - netTestTimer > NET_TEST_TIMER_DELTA) {  // test module toutes les x sec
+    } else if (currentStepSettings == 0 && millis() - netTestTimer > NET_TEST_TIMER_DELTA) {  // test module every x sec
       waitingTry++;
-      if (waitingTry == 24) {  //en cas de non réponse, possibilité qu'il y ait eu reboot arduino et pas reboot module qui est en ecoute 57600
+      if (waitingTry == 24) {  //If there is no response, it's possible that the Arduino was rebooted, but not the module which is listening for 57600.
         Serial.print(F("## Try 57600bps ##"));
         setSerialSpeed();
       }
@@ -506,13 +512,13 @@ void SIM7600MQTT::startupSIM() {
 void SIM7600MQTT::checkSIM() {
   bool debug = 1;
   if (SIM7600ready && !SIMready) {
-    if (acqRespSIM == 2 && statusOk && errorCode == 0) {  // gestion réponse
+    if (acqRespSIM == 2 && statusOk && errorCode == 0) {  // reponse management
       SIMready = 1;
       resetStatus();
       netTestTimer = 0;
       Serial.println(F("SIM card detected"));
       if (debug) { Serial.print("--checkSIM--"); printSimState(); }
-    } else if (millis() - netTestTimer > NET_TEST_TIMER_DELTA) {  // test module toutes les x sec
+    } else if (millis() - netTestTimer > NET_TEST_TIMER_DELTA) {  // test module every x sec
       resetStatus();
       processMQTT = 0;
       Serial.println(F("checking SIM..."));
@@ -523,7 +529,7 @@ void SIM7600MQTT::checkSIM() {
   }
 }
 
-//-- acquisition réseau --
+//-- network acquisition --
 void SIM7600MQTT::networkSearch() {
   if (SIM7600ready && SIMready) {
     if (!networkready) {
@@ -542,7 +548,7 @@ void SIM7600MQTT::networkSearch() {
         beginMQTT = true;
         currentStepBeginMQTT++;
         executeStep = true;
-      } else if (millis() - netTestTimer > NET_TEST_TIMER_DELTA) {  //test reseau toutes les x sec
+      } else if (millis() - netTestTimer > NET_TEST_TIMER_DELTA) {  //test network every x sec
         Serial.println(F("--networkSearch-- "));
         resetSearchNetState();
       }
@@ -665,7 +671,7 @@ bool SIM7600MQTT::sslAtMQTT(byte step) {
   return true;
 }
 
-//gestion déclenchement sequence d'envoi MQTT
+//MQTT sending sequence trigger management
 byte SIM7600MQTT::publishMQTT(char *topic, char *payload) {
   bool debug = 0;
   //process status of current MQTT action #0 nothing running #1 running MQTT request #2 finished & success  #3 failed to process MQTT request  #4 Must relaunch process
@@ -682,7 +688,7 @@ byte SIM7600MQTT::publishMQTT(char *topic, char *payload) {
   if (strlen(payload) == 0) {
     Serial.println(F("--empty payload!--"));
   } else if (networkready && (processMQTT == 0 || processMQTT == 2) && strlen(payload) != 0) {
-    //lancement d'un proccess d'envoi MQTT
+    //launching an MQTT sending process
     if (debug) { Serial.println(F("--init publish state--")); }
     resetStatus();
     resetStep();
@@ -694,7 +700,7 @@ byte SIM7600MQTT::publishMQTT(char *topic, char *payload) {
     executeStep = true;
     timeoutTimer = millis();
   } else if (networkready && processMQTT == 1 && timeoutTimer != 0 && (millis() - timeoutTimer) > TIMEOUT_SESSION) {
-    //blocage dans un état d'envoi non terminé (peut être dû à délais trop court entre 2 publish)
+    //Stuck in an incomplete sending state (may be due to insufficient time between two publishes)
     Serial.println(F("--#publishMQTT error process running--"));
     if (debug) { Serial.print("##"); printSimState(); }
     processMQTT = 3;
@@ -743,10 +749,10 @@ bool SIM7600MQTT::sendMsgMQTT(char *topic, char *payload, byte step) {
   return true;
 }
 
-//lancement des commandes AT pour connexion MQTT : analyse message commande précédente et lancement commande suivante
+//Launching AT commands for MQTT connection: parsing the previous command message and launching the next command
 bool SIM7600MQTT::launchAtCmdMQTT() {
   bool debug = 0;
-  // verification incohérence
+  // inconsistency check
   int incCpt = 0;
   if (sslMQTT) { incCpt++; }
   if (beginMQTT) { incCpt++; }
@@ -764,7 +770,7 @@ bool SIM7600MQTT::launchAtCmdMQTT() {
     #if SYNC_NTP_DATETIME == 1
       unsigned long mylimit = GET_NET_TIME_PERIOD;
       DateTime* currentDateTime = get_gsm_datetime();
-      if (currentDateTime == nullptr) {mylimit = 300000;} //raccourci le délais si pas de synchro d'heure
+      if (currentDateTime == nullptr) {mylimit = 300000;} //shortens the delay if there is no time synchronization
       if(millis() - last_nettime_request > mylimit){
         resetAtState();
         soloMQTT = true;
@@ -778,12 +784,12 @@ bool SIM7600MQTT::launchAtCmdMQTT() {
 
   if (processMQTT == 2) {
     Serial.println(F("--message envoyé--"));
-    //nb fonctionne avec pile car loop traite le processMQTT entre 2 appels de cette fonction
+    //Note: This function works with buffer stack because loop processes the MQTT process between two calls to this function
     processMQTT = 0;
     return true;
   }
 
-  //verification status process en cours
+  //verification status process in progress
   if (processMQTT == 3) {
     if (retryTimer == 0) {
       Serial.println(F("--MQTT seq failed to process!--"));
@@ -803,7 +809,7 @@ bool SIM7600MQTT::launchAtCmdMQTT() {
     return false;
   }
 
-  if (processMQTT == 4) {  //gestion logique process et reseau dispo ...TODO
+  if (processMQTT == 4) {  //Logical process and network management available...TODO
     if (retryTimer == 0) {
       Serial.println(F("--MQTT cmd failed to process!--"));
       retryTimer = millis();
@@ -828,7 +834,7 @@ bool SIM7600MQTT::launchAtCmdMQTT() {
   //received response SIM7600
   if (networkready && acqRespSIM == 2 && processMQTT == 1) {
     if (debug) { Serial.print("--launchAtCmdMQTT--"); printSimState(); }
-    // ---- commandes SSL ----
+    // ---- commands SSL ----
     if (sslMQTT) {
       if (errorCode > 0) { statusError = true; }
       //switch step beginMQTT
@@ -861,7 +867,7 @@ bool SIM7600MQTT::launchAtCmdMQTT() {
         resetStatus();
         bufferIndex = 0;
       } else {
-        //erreur
+        //error
         Serial.println(F("--#sslMQTT step error!--"));
         printSimState();
         statusOk = 0;
@@ -870,13 +876,13 @@ bool SIM7600MQTT::launchAtCmdMQTT() {
         processMQTT = 3;
         return false;
       }
-      //TODO gérer statusError
+      //TODO manage statusError
     } else if (beginMQTT) {
-      //gestion erreurs cmd AT MQTT
+      //manage error cmd AT MQTT
       switch (errorCode) {
-        case -1:  //pas de code erreur détecté
+        case -1:  //no error code detected
           break;
-        case 0:  //tout est ok
+        case 0:  //all is OK
           statusOk = 1;
           statusError = 0;
           break;
@@ -908,14 +914,14 @@ bool SIM7600MQTT::launchAtCmdMQTT() {
           processMQTT = 3;
           return false;
           break;
-        case 23:  //network is opened => non bloquant étape suivante mais signe pb dans seq
+        case 23:  //network is opened => non-blocking next step but signs of a problem in the sequence
           Serial.println(F("--E: network is opened!--"));
           statusOk = 0;
           statusError = 1;
           processMQTT = 3;
           return false;
           break;
-        case 19:  //client is used => non bloquant étape suivante mais signe pb dans la seq
+        case 19:  //client is used => non-blocking next step but signs of a problem in the sequence
           Serial.println(F("--E: client is used!--"));
           statusOk = 0;
           statusError = 1;
@@ -993,7 +999,7 @@ bool SIM7600MQTT::launchAtCmdMQTT() {
             closeMQTT = false;
             currentStepBeginMQTT = 0;
             Serial.println(F("--Failed #BeginAtMQTT--"));
-            //TODO gestion erreur
+            //TODO management error
             statusOk = 0;
             statusError = 1;
             processMQTT = 3;
@@ -1035,7 +1041,7 @@ bool SIM7600MQTT::launchAtCmdMQTT() {
         processMQTT = 3;
       }
     } else if (closeMQTT) {
-      //TODO fin de la séquence
+      //TODO end of sequence
       if (statusOk && !statusError && currentStepCloseMQTT == 3) {
         resetStatus();
         resetAtState();
@@ -1058,7 +1064,7 @@ bool SIM7600MQTT::launchAtCmdMQTT() {
         resetStatus();
         bufferIndex = 0;
       } else {
-        //erreur
+        //error
         Serial.println(F("--#closeMQTT step error!--"));
         statusOk = 0;
         statusError = 1;
@@ -1118,16 +1124,16 @@ bool SIM7600MQTT::launchAtCmdMQTT() {
   return true;
 }
 
-//lancement des commandes AT pour process global
+//Launch of AT orders for global process
 //warning : order of following function is essential
 void SIM7600MQTT::lib_MQTT() {
-  //-- ecoute messages SIM7600
+  //-- listen messages SIM7600
   listenSerialSIM7600();
   dialogCheck();
-  //-- gestion des états --
+  //-- state management --
   startupSIM();
   checkSIM();
   networkSearch();
-  //sim7600mqtt.publishAutoMQTT(interpublish);  //Pour test
+  //sim7600mqtt.publishAutoMQTT(interpublish);  //For test
   launchAtCmdMQTT();
 }

@@ -44,7 +44,7 @@ struct Ecoset
     //float MHWaterColonne;
     float MHWaterHauteur;
 
-    // Constructeur par défaut qui met tout à zéro
+    // Default builder that resets everything to zero
     Ecoset() :
       day(0), month(0), year(0), hour(0), minute(0), second(0), UTCoffset(0),
       MHTemp(0), MHHum(0), MHPatm(0), MHRay(0), MHPDavis(0),

@@ -2,6 +2,7 @@
 SIM7600MQTT.h - Library to use SIM7600 module to push MQTT(S) messages
 Created by Philippe CHAUMEIL, July 5, 2024.
 Modified by Frederic Raspail July 2024
+Modified by Philippe CHAUMEIL March 2026
 Release into the public domain.
 Principle:
 This library only push MQTT(S) message. Subscription is not supported.
@@ -116,20 +117,20 @@ private:
 
 //--- SIM7600 variables ---
 #define NUM_STEP 20
-  bool SIM7600ready = 0;  //module opérationnel
-  bool SIMready = 0;      //carte SIM opérationnelle
-  bool networkready = 0;  //réseau gsm opérationnel
-  bool beginMQTT = 0;     //commandes initialisation avant message
-  bool closeMQTT = 0;     //commandes fermeture après message
-  bool sslMQTT = 0;       //commandes initialisation SSL
-  bool msgMQTT = 0;       //commandes de publication message
-  bool soloMQTT = 0;      //commandes ponctuelles
+  bool SIM7600ready = 0;  //module status active
+  bool SIMready = 0;      //SIM card active
+  bool networkready = 0;  //GSM network ready
+  bool beginMQTT = 0;     //init command before message
+  bool closeMQTT = 0;     //close command after message
+  bool sslMQTT = 0;       //init command SSL
+  bool msgMQTT = 0;       //command to publish message
+  bool soloMQTT = 0;      //individual command
 
-  byte acqRespSIM = 0;   //status reponse du module #0 attente réponse #1 en cours acquisition #2 message complet reçu
-  bool statusOk = 0;     //status OK du module i.e. module a retourné OK ou réponse équivalente
-  bool statusError = 0;  //status error du module
-  bool statusPlus = 0;   //status reception réponse +...
-  int errorCode = -1;    //error code du module
+  byte acqRespSIM = 0;   //status reponse of the module #0 waiting for response #1 aquisition in progress #2 full message received
+  bool statusOk = 0;     //status OK for module i.e. module returned OK or similar response
+  bool statusError = 0;  //status error for module
+  bool statusPlus = 0;   //status of the response receipt +...
+  int errorCode = -1;    //error code for module
   byte currentStepSettings = 0;
   byte currentStepBeginMQTT = 0;
   byte currentStepCloseMQTT = 0;
@@ -144,16 +145,16 @@ private:
   byte waitingTry = 0;  // Try number dialog with module
 
   //____ timer ____
-  unsigned long netTestTimer = 0;                       //timer pour test connection reseau
-  unsigned long serialTimer = 0;                        //timer pour tenir compte du délais du buffer série
-  unsigned long requestTimer = 0;                       //timer d'envoi de la requête
-  unsigned long requestTimerLimit = MAX_REQUEST_TIMER;  //temps limite de la requête
-  unsigned long retryTimer = 0;                         //timer de reprise sur echec
-  unsigned long timeoutTimer = 0;                       //timeout en état processMQTT running
+  unsigned long netTestTimer = 0;                       //timer for network connection test
+  unsigned long serialTimer = 0;                        //timer to account for serial buffer delay
+  unsigned long requestTimer = 0;                       //request sending timer
+  unsigned long requestTimerLimit = MAX_REQUEST_TIMER;  //request time limit
+  unsigned long retryTimer = 0;                         //recovery timer on failure
+  unsigned long timeoutTimer = 0;                       //Timeout in processMQTT running state
   unsigned long checkNetwork = 0;                       //timer to periodic check network and update datetime
   unsigned long last_nettime_request = 0;               //timer to follow last time request on network (NTP)
   unsigned long lastPowerOnTimer = 0;                   //timer to log last power on
-  unsigned long intervalPubTimer = 0;                   //timer pour publication automatique
+  unsigned long intervalPubTimer = 0;                   //timer for automatic publishing
 
   //___ define RTC software ___
   RTC_Millis rtc_sim7600;

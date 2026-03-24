@@ -1,18 +1,23 @@
-//projet ECOLOGGING partie meteo
-//UEFP Pierre BORDENAVE
-#define progversion "20251204"
+//ECOLOGGING project
+//
+// This program is written for ecologging stations.
+// No waranty is given
+//
+//philippe.chaumeil@inrae.fr _ Univ. Bordeaux, INRAE, BIOGECO, F-33610, Cestas, France
+//pierre.bordenave@inrae.fr _INRAE, UEFP, 33610 Cestas, France
+#define progversion "20260324"
 
 #include <SPI.h>
 #include <SD.h>
-#include <Wire.h>
-#include "RTClib.h" //bibliotheque RTC pour DS3231
+#include <Wire.h>   //library required for DS18B20
+#include "RTClib.h" // RTC library for DS3231
 
-//#include "DFRobot_SHT20.h"//bibliotheque SEN0227
+//#include "DFRobot_SHT20.h"//library for SEN0227
 
-#include <math.h> //vent vitesse
-#include "TimerOne.h"//DAVIS
+#include <math.h> //required for wind speed
+#include "TimerOne.h"//required for DAVIS sensor
 
-#include "config.h" //fichier de configuration
+#include "config.h" //configuration file
 
 //## buffer pile ##
 #include "buffer_pile.h"
@@ -41,7 +46,6 @@ int dernierTriggerMinute = -1;
 //++++++++++++++++++++++++++++++Setup+++++++++++++++++++++++++++++++++++
 void setup() {
   while (!Serial) { delay(10); }
-  //Serial.println(F("#__ version " progversion "__"));
 
   #if MOD_PYRANO
     Capteurs.initPyrano();
@@ -50,12 +54,12 @@ void setup() {
     Capteurs.initVent1();  //before speed serial definition
   #endif
   
-  Serial.begin(115200);   // Moniteur série
+  Serial.begin(115200);   // Serial Monitor
 
   Wire.begin();
   Wire.setClock(100000);
 
-  //initialisation des capteurs & modules
+  //initialization of sensors and modules
   initRTC();
 
   #if MOD_BME280
@@ -93,16 +97,16 @@ void setup() {
     Capteurs.initADS();
   #endif
 
-  //initialisation des fichiers de sauvegardes (entête)
+  //initialization of backup files (header)
   entete_tab_mesures();
   entete_tab_moyennes();
   
   Serial.print(F("#__ version ")); Serial.print(progversion); Serial.println(F("__"));
 }
 
-//++++++++++++++++++++++++++++++Le loop boucle infinie +++++++++++++++++++++++++++++++++++
+//++++++++++++++++++++++++++++++ Main infinite loop +++++++++++++++++++++++++++++++++++
 void loop() {
-  DateTime now = RTC.now(); //lecture RTC DS3231
+  DateTime now = RTC.now(); //read RTC DS3231
   int currentSecond = now.second();
   int currentMinute = now.minute();
   int currentHour = now.hour();
@@ -118,7 +122,7 @@ void loop() {
       mypile.next_pile();
 
     }else if(sim7600mqtt.get_status() == 1 && ((millis() - intervalPubTimer) > 60000)){
-      //delay to prevent too many frequent publication
+      // delay to prevent too many frequent publication
       // publish state is possible if data available in buffer_pile and no other process occured
       intervalPubTimer = millis();
       Ecoset dataset;
@@ -135,10 +139,10 @@ void loop() {
     //check buffer and hard_reset module
     if(mypile.alert_full_pile()){sim7600mqtt.hard_reset_SIM7600();}
 
-    //lancement librairie SIM7600MQTT
+    //launch SIM7600MQTT library
     sim7600mqtt.lib_MQTT();
   
-    //### gestion temps ###
+    //### Time management ###
     //try update RTC periodically
     if(millis() - DS3231RTC_update > DS3231RTC_update_interval){
       if(update_RTC()){DS3231RTC_update_interval = DS3231RTC_normal_update_interval;}
@@ -146,12 +150,12 @@ void loop() {
     }
   #endif
 
-  //### déclenchement acquistion ###
+  //### start acquistion ###
   for (uint8_t i = 0; i < NB_SECONDES_CIBLES; i++) {
     if (currentSecond == SECONDES_CIBLES[i] && currentSecondHour != dernierTriggerSeconde) {
       dernierTriggerSeconde = currentSecondHour;
     
-      //acquisition et monitoring
+      //acquisition & monitoring
       printFormatedDateTime(now);
       #if MOD_BME280
         #if THP_MERGE
@@ -180,20 +184,20 @@ void loop() {
       #if MOD_ADS_KIT0139
         Capteurs.acqADS_kit0139();
       #endif
-      //ecriture sur la carte micro SD du fichier ECOLOGING acquisition toutes les 20secondes
+      //Writing the ECOLOGING file to the micro SD card every XX seconds
       WriteToFileMeasure(now);
 
       break;
     }
-  }  //fin acquisition 20sec
+  }  //end of the acquisition section
 
-  //++++++++++++++++++++++++Pluviométrie+avec enregistrement 60min+++++++++++++++++++++++
+  //++++++++++++++++++++++++ Rainfall and mean recording +++++++++++++++++++++++
   #if MOD_PLUIE
     Capteurs.acqPluvio();
   #endif
   // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  //### déclenchement calcul moyenne et enregistrement des données ###
+  //### triggering average calculation and data recording ###
   for (uint8_t i = 0; i < NB_MINUTES_CIBLES; i++) {
     if (currentMinute == MINUTES_CIBLES[i] && currentMinuteDay != dernierTriggerMinute) {
       dernierTriggerMinute = currentMinuteDay;
@@ -236,7 +240,7 @@ void loop() {
 
       Capteurs.resetSommes();
 
-      //remise a zero cumul pluie a minuit
+      //reset daily rainfall total at midnight
       #if MOD_PLUIE
         if(now.hour()== 0) {
           Capteurs.resetCumuls();
@@ -247,12 +251,12 @@ void loop() {
     }
   }
 
-}//fermeture boucle du void loop infini
+} //end main infinite loop
 
 
-//--------- fonctions ecriture/envoi datas ------------
+//--------- write/send data functions ------------
 
-
+// print Mean values to serial
 void MoyenneToSerial(){
   #if MOD_PLUIE
     Serial.print(Capteurs.cumulHRain(),2);Serial.print(F(" cumul en mm\t"));// Pluie en mm
@@ -286,7 +290,7 @@ void MoyenneToSerial(){
 
 // format payload to send on MQTT topic. Data is supplied in a Ecoset structure
 bool formatted_payload(Ecoset dataset, char* payload){
-  //formatage du message
+  //Format payload
   const char template_payload[] = 
   "{\"TS\":\"%s\""
   #if THP_CAPTEUR_COUNT > 0
@@ -322,22 +326,22 @@ bool formatted_payload(Ecoset dataset, char* payload){
   char formatdatetime[25] = "\0";
   char utcformatdatetime[20] = "\0";
 
-  //récupération des valeurs des arguments
+  //get arguments values
   mypile.get_formatted_datetime_bufferpile(dataset, formatdatetime);
   dtostrf(dataset.MHTemp,1,2,arg1);           //Temp -15°C à +50°C  //4d
-  dtostrf(dataset.MHHum,1,2,arg2);            //Hum Relative 0 à 100%  //5d
-  dtostrf(dataset.MHRay,1,2,arg3);            //Luminosité 0 à 140000Lux //8d 
+  dtostrf(dataset.MHHum,1,2,arg2);            //Relative Humidity 0 à 100%  //5d
+  dtostrf(dataset.MHRay,1,2,arg3);            //Luminosity 0 à 140000Lux //8d 
   dtostrf(dataset.MHPDavis,1,2,arg4);         //Irridiation  Watt/m²
-  dtostrf(dataset.MHVit,1,2,arg5);            //Vent 0 à 200 ou 250km/h  //5d
+  dtostrf(dataset.MHVit,1,2,arg5);            //Wind 0 à 200 ou 250km/h  //5d
   dtostrf(dataset.MHDir,1,2,arg6);            //Direction 0 à 360deg  //5d
   dtostrf(dataset.MHPluie,1,2,arg7);          //5d
   dtostrf(dataset.MHPatm,1,2,arg8);           //950 à 1100mbar//5d
   dtostrf(dataset.MHTempWater,1,2,arg9);      //temperature eau//4d
-  dtostrf(dataset.MHWaterHauteur,1,2,arg10); //hauteur nappe
+  dtostrf(dataset.MHWaterHauteur,1,2,arg10); //water level
 
   mypile.get_formatted_UTC_bufferpile(dataset, utcformatdatetime);
   
-  //generation du message
+  //message generation
   int result = snprintf(message, sizeof(message), template_payload, formatdatetime
   #if THP_CAPTEUR_COUNT > 0
   , arg1, arg2
@@ -373,9 +377,9 @@ bool formatted_payload(Ecoset dataset, char* payload){
   return true;
 }
 
-//Fonction création entete.csv mesures
+//Function to create header.csv (measurements)
 void entete_tab_mesures(){
-  fichier20s = SD.open(DATA_FILENAME, FILE_WRITE);//ici limite au nombre de lettre pour ecrire nom fichier de plus si on veut un fichier txt il faut changer en .txt
+  fichier20s = SD.open(DATA_FILENAME, FILE_WRITE); //warning limitation in filename length.
   fichier20s.print(F("Date et heure"));fichier20s.print(";");
   #if THP_CAPTEUR_COUNT > 0
     fichier20s.print(F("HR_%"));fichier20s.print(";");
@@ -403,12 +407,12 @@ void entete_tab_mesures(){
     fichier20s.print(F("T_W °C"));fichier20s.print(";");
   #endif
   fichier20s.println("");
-  fichier20s.close();//fermeture fichier
+  fichier20s.close();
 }
 
-//Fonction création entete.csv moyenne
+//Function to create entete.csv (averages)
 void entete_tab_moyennes(){
-  MoyH = SD.open(MOY_FILENAME, FILE_WRITE);//ici limite au nombre de lettre pour ecrire nom fichier de plus si on veut un fichier txt il faut changer en .txt
+  MoyH = SD.open(MOY_FILENAME, FILE_WRITE); //warning limitation in filename length.
   MoyH.print(F("Date et heure"));MoyH.print(";");
   #if MOD_PLUIE
     MoyH.print(F("CumulPluie en mm"));MoyH.print(";");
@@ -442,13 +446,12 @@ void entete_tab_moyennes(){
     MoyH.print(F("T_AVG_W en DegC"));MoyH.print(";");
   #endif
   MoyH.println("");
-  MoyH.close();//fermeture fichier
+  MoyH.close();
 }
 
-void WriteToFileMeasure(DateTime now){
-  //ecriture sur la carte micro SD du fichier ECOLOGING acquisition toutes les 20secondes
+//Writing the ECOLOGING measurements file to the micro SD card every XX seconds
+void WriteToFileMeasure(DateTime now){  
   File fichier20s = SD.open(DATA_FILENAME,FILE_WRITE);
-  /// ecriture des donnees dans la carte SD
   char DT_template[] = "DD/MM/YYYY hh:mm:ss ; ";
   now.toString(DT_template);
   fichier20s.print(DT_template);
@@ -478,12 +481,12 @@ void WriteToFileMeasure(DateTime now){
     fichier20s.print(Capteurs.valTempWater());fichier20s.print(";");
   #endif
   fichier20s.println("");
-  fichier20s.close();//fermeture fichier
-  //fin enregistrement
+  fichier20s.close();
 }
 
+//Writing the ECOLOGING averages file to the micro SD card
 void WriteToFileMoyenne(DateTime now){
-  File MoyH = SD.open(MOY_FILENAME,FILE_WRITE);/// ecriture des donnees dans la carte SD
+  File MoyH = SD.open(MOY_FILENAME,FILE_WRITE);
   char DT_template[] = "DD/MM/YYYY hh:mm:ss";
   now.toString(DT_template);
   MoyH.print(DT_template); MoyH.print(" ; ");
@@ -519,5 +522,5 @@ void WriteToFileMoyenne(DateTime now){
     MoyH.print(Capteurs.meanTempWater());MoyH.print(";");
   #endif
   MoyH.println("");
-  MoyH.close();//fermeture fichier
+  MoyH.close();
 }

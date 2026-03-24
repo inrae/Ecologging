@@ -1,18 +1,17 @@
 /***************
-bibliothèque pour gérer
-les capteurs météos
+Library for managing weather sensors
 P.Bordenave 2025
+P.Chaumeil 2026
 
 //projet ECOLOGGING partie meteo
 //UEFP Pierre BORDENAVE 
-//correspondant Cadouin
-//tout fonctionne et vérification le 04/07/2024
+
 //V1 : utilisation fonction lowpower pour perte d'énergie avec redémarrage et garder le temps en tête
 //V2 : mise en place des fonction et des réductions de PROGMEM pour l'affichage monitoring
 
 //####################### ATTENTION ###########################
 //Cette Classe nécessite l'appel à Wire.begin(); Dans le setup du programme.
-
+//This class requires a call to Wire.begin(); in the program setup.
 
 //RTC DS3231 ref Gotronic 34360
 //https://learn.adafruit.com/adafruit-ds3231-precision-rtc-breakout/arduino-usage
@@ -55,17 +54,17 @@ P.Bordenave 2025
 #define CAPTEURS_METEO_h
 
 #include <Wire.h>
-#include "DFRobot_VEML7700.h"       //VEML7700//mesure lux en VEML7700
+#include "DFRobot_VEML7700.h"       //VEML7700//measure lux en VEML7700
 #include "cactus_io_BME280_I2C.h"   //BME280
 #include "SHT31.h"                  //SHT31
 #include "DFRobot_SHT20.h"          //SHT20/SEN0227
 #include <TimerOne.h>               //Davis
 #include <OneWire.h>
 #include <DallasTemperature.h> 
-#include <Adafruit_ADS1X15.h>       //ADS1X15 ADC_4canaux (Kit0139 water level)
+#include <Adafruit_ADS1X15.h>       //ADS1X15 ADC_4channel (Kit0139 water level)
 
-//paramètres
-#define RainPin 4             //Pluviometre Pin
+//parameters
+#define RainPin 4             //Pluviometer Pin
 #define SHT31_ADDRESS   0x44  //SHT31
 
 #define WindSensorPin (3)      //The pin location of the anemometer sensor
@@ -74,7 +73,7 @@ P.Bordenave 2025
 
 #define PyranoPin (A1)          //Pin location for Pyranometer
 constexpr uint8_t DS18B20Pin = 2;            //Pin location for DS18B20 soil temperature
-constexpr uint16_t WaterLevelInstall = 1000;  //Profondeur d'installation du kit0139 Water level en mm
+constexpr uint16_t WaterLevelInstall = 1000;  //Installation depth of kit0139 Water level in mm
 
 class CAPTEURS_METEO {
 
@@ -82,80 +81,80 @@ class CAPTEURS_METEO {
 public:
   CAPTEURS_METEO(uint16_t WLinstall = WaterLevelInstall, uint8_t pin_DS18B20 = DS18B20Pin);
 
-  //++++++++++ Valeurs Courantes ++++++++++
-  float valTemp();                        //renvoie la valeur courante
-  float valHumid();                       //renvoie la valeur courante
-  float valPatm();                        //renvoie la valeur courante
-  float valRay();                         //renvoie la valeur courante
-  float valPyrano();                      //renvoie la valeur courante
-  float valTempWater();                   //renvoie la valeur courante
-  float valVitesse();                     //renvoie la valeur courante
-  float valDirection();                   //renvoie la valeur courante
-  float valWaterVolt();                   //renvoie la valeur courante
-  float valWaterColonne();                //renvoie la valeur courante
-  float valWaterHauteur();                //renvoie la valeur courante
+  //++++++++++ Current values ++++++++++
+  float valTemp();                        //returns current value
+  float valHumid();                       //returns current value
+  float valPatm();                        //returns current value
+  float valRay();                         //returns current value
+  float valPyrano();                      //returns current value
+  float valTempWater();                   //returns current value
+  float valVitesse();                     //returns current value
+  float valDirection();                   //returns current value
+  float valWaterVolt();                   //returns current value
+  float valWaterColonne();                //returns current value
+  float valWaterHauteur();                //returns current value
 
-  //++++++++++ Moyennes ++++++++++
+  //++++++++++ Averages ++++++++++
   void resetSommes();
-  float meanTemp();                        //renvoie la moyenne courante
-  float meanHumid();                       //renvoie la moyenne courante
-  float meanPatm();                        //renvoie la moyenne courante
-  float meanRay();                         //renvoie la moyenne courante
-  float meanPyrano();                      //renvoie la moyenne courante
-  float meanTempWater();                   //renvoie la moyenne courante
-  float meanVitesse();                     //renvoie la moyenne courante
-  float meanDirection();                   //renvoie la moyenne courante
-  float meanWaterVolt();                   //renvoie la moyenne courante
-  float meanWaterColonne();                //renvoie la moyenne courante
-  float meanWaterHauteur();                //renvoie la moyenne courante
+  float meanTemp();                        //returns the current average
+  float meanHumid();                       //returns the current average
+  float meanPatm();                        //returns the current average
+  float meanRay();                         //returns the current average
+  float meanPyrano();                      //returns the current average
+  float meanTempWater();                   //returns the current average
+  float meanVitesse();                     //returns the current average
+  float meanDirection();                   //returns the current average
+  float meanWaterVolt();                   //returns the current average
+  float meanWaterColonne();                //returns the current average
+  float meanWaterHauteur();                //returns the current average
   
-  //++++++++++ Cumuls ++++++++++
-  void resetCumuls();                      //reset les cumuls journaliers
-  void setHcumulPluvio();                  //enregistre l'état du cumul horaire
-  double cumulHRain();                     //renvoie le dernier cumul horaire
-  double cumulDRain();                     //renvoie le dernier cumul journalier
+  //++++++++++ Accumulations ++++++++++
+  void resetCumuls();                      //reset daily totals
+  void setHcumulPluvio();                  //records the status of the accumulated hours
+  double cumulHRain();                     //returns the last hourly total
+  double cumulDRain();                     //returns the latest daily total
 
   //++++++++++ VEML7700 ++++++++++
-  void initVEML7700();                      //Fonction démarrage Rayonnement VEML7700
-  void acqVEML7700();                       //acquisition VEML7700
+  void initVEML7700();                      //VEML7700 Radiation Start-up Function
+  void acqVEML7700();                       //Acquisition VEML7700
 
   //++++++++++ Pyranomètre Davis 6450 +++++++++
   void initPyrano();                        //initialisation : check AREF connected to 3.3V (measure 3.21V multimeter)
-  void acqPyrano();                         //acquisition pyrano Davis 6450
+  void acqPyrano();                         //Acquisition pyrano Davis 6450
 
   //++++++++++ BME280 ++++++++++
-  void initBME280();                        //Fonction initialisation BME280
-  void acqBME280(bool Ponly = 0);               //acquisition BME280 (T°, Hum, Pression) (Ponly = 1 si lecture Pression uniquement)
+  void initBME280();                        //Initialisation function BME280
+  void acqBME280(bool Ponly = 0);           //Acquisition BME280 (T°, Hum, Pressure) (Ponly = 1 if read only Pressure)
 
   //++++++++++ SHT31 ++++++++++
-  void initSHT31();                         //Fonction initialisation SHT31
-  void acqSHT31();                          //acquisition SHT31 (T°, Hum)
+  void initSHT31();                         //Initialisation function SHT31
+  void acqSHT31();                          //Acquisition SHT31 (T°, Hum)
 
   //++++++++++ SHT20/SEN0227 ++++++++++
-  void initSHT20();                         //Fonction initialisation SHT20
-  void acqSHT20();                          //acquisition SHT20 (T°, Hum)
+  void initSHT20();                         //Initialisation function SHT20
+  void acqSHT20();                          //Acquisition SHT20 (T°, Hum)
 
-  //++++++++++ Pluviomètre bascule ++++++++++
-  void initPluvio();                        //Fonction initialisation Pluviomètre
+  //++++++++++ Pluviometer ++++++++++
+  void initPluvio();                        //Initialisation function Pluviometer
   void acqPluvio();                         //check status pluvio (run each loop)
 
-  //++++++++++ Anémomètre : vent DAVIS ++++++++++
-  void initVent1();                         //Fonction initialisation Vitesse et orientation du vent
+  //++++++++++ Anémometer : wind DAVIS ++++++++++
+  void initVent1();                         //Initialization function Wind speed and direction
   void initVent2();
-  void acqVent();                           //acquisition Vitesse et orientation du vent
+  void acqVent();                           //Acquisition Wind speed and direction
   
   //++++++++++ DS18B20 Soil temperature ++++++++++
-  void initDS18B20();                       //Fonction initialisation DS18B20
-  void acqDS18B20Teau();                    //acquisition DS18B20 (T°)
+  void initDS18B20();                       //Initialisation function DS18B20
+  void acqDS18B20Teau();                    //Acquisition DS18B20 (T°)
 
-  //++++++++++ ADS1X15 + sonde water level KIT0139 Franck Perret ++++++++++
+  //++++++++++ ADS1X15 + water level probe KIT0139 Franck Perret ++++++++++
   void initADS();
   void acqADS_kit0139();
 
   //######################### PRIVATE SECTION ##########################
 private:
-  //+++++++++ variables mesurées +++++++++
-  float TempMesure = 0.0; //stocke la dernière valeur mesurée
+  //+++++++++ measured variables +++++++++
+  float TempMesure = 0.0; //stores the last measured value
   float HumidMesure = 0.0;
   float PatmMesure = 0.0;
   float RayMesure = 0.0;
@@ -179,7 +178,7 @@ private:
   float SommeWC = 0.0;
   float SommeWH = 0.0;
 
-  int nbT = 0;  //nb de valeurs sommées
+  int nbT = 0;  //number of summed values
   int nbHR = 0;
   int nbP = 0;
   int nbL = 0;
@@ -193,8 +192,8 @@ private:
   float lux;
   DFRobot_VEML7700 als;
 
-  //++++++++++ Pyranomètre Davis 6450 +++++++++
-  const float pyrReferenceVoltage = 5.0;  // Mesurée avec multimètre
+  //++++++++++ Pyranometer Davis 6450 +++++++++
+  const float pyrReferenceVoltage = 5.0;  // Measured with a multimeter
   const float pyrSensitivity = 0.00167;   // 1,67 mV/W/m²
   const float pyrZeroOffset = 0.017;
 
@@ -207,14 +206,14 @@ private:
   //++++++++++ SHT20/SEN0227 ++++++++++
   DFRobot_SHT20    sht20;
 
-  //++++++++++ Pluviomètre bascule ++++++++++
+  //++++++++++ Pluviometer ++++++++++
   bool bucketPositionA = false;             // one of the two positions of tipping-bucket               
-  const double bucketAmount = 0.11;         // la valeur de 0.2794mm a été donnée par le constructeur LEXTRONIC sans le godet DIY
+  const double bucketAmount = 0.11;         // The value of 0.2794mm was given by the manufacturer LEXTRONIC without the DIY cup
   double dailyRain = 0.0;                   // rain accumulated for the day
   double hourlyRain = 0.0;                  // rain accumulated for one hour
   double dailyRain_till_LastHour = 0.0;     // rain accumulated for the day till the last hour          
 
-  //++++++++++ Anémomètre : vent DAVIS ++++++++++
+  //++++++++++ Anemometer : wind DAVIS ++++++++++
   int VaneValue;
   int Direction; 
   int CalDirection;
@@ -234,9 +233,9 @@ private:
   OneWire oneWire_Teau;
   DallasTemperature sensor_Teau;
 
-  //++++++++++ ADS1X15 + sonde water level KIT0139 Franck Perret ++++++++++
+  //++++++++++ ADS1X15 + water level probe KIT0139 Franck Perret ++++++++++
   Adafruit_ADS1115 ads;   /* Use this for the 16-bit version */
-  uint16_t _WLinstall;     //profondeur d'installation de la sonde en mm
+  uint16_t _WLinstall;     //probe installation depth in mm
 
 };
 #endif //CAPTEURS_METEO_H

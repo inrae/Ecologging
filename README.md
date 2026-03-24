@@ -6,6 +6,11 @@ La station utilise comme microcontrolleur un ARDUINO MEGA 2560 associé à une c
 La transmission utilise le protocole MQTT avec support SSL et authentification login/password.
 Un tampon mémoire paramétrable est utilisé pour stocker les données devant être transmises en cas de perte temporaire du réseau 4G.
 
+The ECOLOGGING project was created to offer an alternative to existing commercial weather stations. The ECOLOGGING station is less expensive and allows for the recording of several meteorological parameters such as temperature, relative humidity, wind speed, wind direction, solar radiation, and rainfall totals, all while maintaining a very attractive data quality-to-cost ratio. This station is modular and portable.
+The station uses an Arduino Mega 2560 microcontroller, an SD card for local data storage, and a 7600G 4G HAT SIM for 4G transmission.
+Transmission uses the MQTT protocol with SSL support and login/password authentication.
+A configurable memory buffer is used to store data to be transmitted in case of a temporary loss of the 4G network.
+
 ## Badges
 ![Demo Image](images/station_meteo_DIY.png)
 
@@ -15,6 +20,12 @@ NOTE: Compte tenu des ressources mémoires nécessaires, le choix d'un Arduino M
 Pour la communication MQTT avec SSL il est nécessaire de charger au préalable les clés de cryptage dans le module SIM 7600G depuis un serveur FTP.
 Les documents relatifs à la réalisation matérielle de la station sont accessible sur hal, notamment dans le document [Tutoriel](https://hal.science/hal-05162126v2)
 
+The code can be uploaded to the Arduino Mega using the Arduino IDE.
+NOTE: Due to the memory requirements, an Arduino Mega is mandatory.
+For MQTT communication with SSL, the encryption keys must first be uploaded to the SIM 7600G module from an FTP server.
+Documents relating to the hardware implementation of the station are available on HAL, particularly in the [Tutorial](https://hal.science/hal-05162126v2) document.
+
+
 ## Usage
 Il est nécessaire de paramétrer un certain nombre de valeurs dans les fichiers suivants :
 
@@ -23,6 +34,15 @@ _ SIM7600MQTTparam.h > parmétrage des informations de connexion au serveur
 
 _ buffer_pile.h > nombre de données gardées en mémoire tampon (NUM_BUFFERED)
 _ capteurs_meteo.h > paramétrage des capteurs (GPIO utilisés)
+
+
+Several values ​​need to be configured in the following files:
+
+_ config.h > selection of installed sensors, acquisition frequency/averages, topic name if sending via 4G
+_ SIM7600MQTTparam.h > server connection information settings
+
+_ buffer_pile.h > number of data points kept in buffer memory (NUM_BUFFERED)
+_ sensor_meteo.h > sensor settings (GPIO used)
 
 ## Support
 pierre.bordenave@inrae.fr
