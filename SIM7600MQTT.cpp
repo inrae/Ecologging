@@ -672,7 +672,7 @@ bool SIM7600MQTT::sslAtMQTT(byte step) {
 }
 
 //MQTT sending sequence trigger management
-byte SIM7600MQTT::publishMQTT(char *topic, char *payload) {
+byte SIM7600MQTT::publishMQTT(const char *topic, char *payload) {
   bool debug = 0;
   //process status of current MQTT action #0 nothing running #1 running MQTT request #2 finished & success  #3 failed to process MQTT request  #4 Must relaunch process
   mqttTopic = topic;
@@ -710,7 +710,7 @@ byte SIM7600MQTT::publishMQTT(char *topic, char *payload) {
 }
 
 //send msg payload to topic
-bool SIM7600MQTT::sendMsgMQTT(char *topic, char *payload, byte step) {
+bool SIM7600MQTT::sendMsgMQTT(const char *topic, char *payload, byte step) {
   if (msgMQTT) {
     int topicLength = strlen(topic);
     int payloadLength = strlen(payload);

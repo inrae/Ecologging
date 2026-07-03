@@ -97,7 +97,7 @@ public:
   void hard_reset_SIM7600();
   DateTime* get_gsm_datetime();
   int get_utc_offset();
-  byte publishMQTT(char* topic, char* payload);
+  byte publishMQTT(const char* topic, char* payload);
   byte get_status();
   void lib_MQTT();
 
@@ -105,7 +105,7 @@ public:
 private:
 
   //topic & payload
-  char* mqttTopic;
+  const char* mqttTopic;
   char* mqttPayload;
 
 //serial variables
@@ -184,7 +184,7 @@ private:
   bool beginAtMQTT(byte step);
   bool closeAtMQTT(byte step);
   bool sslAtMQTT(byte step);
-  bool sendMsgMQTT(char* topic, char* payload, byte step);
+  bool sendMsgMQTT(const char* topic, char* payload, byte step);
 };
 
 #endif  //SIM7600_h

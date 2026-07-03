@@ -5,52 +5,76 @@ without loss of datas
 It is a buffer "first in is first out"
 If buffer is full, oldest data is replaced by new one
 You must define Ecoset Structure to match datas you want to store and modify read and add function
-P.Chaumeil 2024
+P.Chaumeil 2024 modified 2026 (Assisted by Gemini AI for code generation and refactoring.)
 ************************************************/
 
 #ifndef BUFFER_PILE_h
 #define BUFFER_PILE_h
 
-#define NUM_BUFFERED 25     //number of possible datas stored in buffer for transmission. One item is reserved empty for storing current value.
-#define LIMIT_BUFFERED 6    //warning limit if buffer is too full
-
 #include <Arduino.h>
-#include "RTClib.h" //bibliotheque RTC pour DS3231
+#include "config.h" 
+#include "RTClib.h"                     //bibliotheque RTC pour DS3231
+
+#define NUM_BUFFERED 25                 //number of possible datas stored in buffer for transmission.
+#define LIMIT_BUFFERED 6                //warning limit if buffer is too full
 
 //WARNING: the struct members must be sorted in a descending order to minimize memory footprint
 
 #define BUFFER_DEBUG 1
 
-struct Ecoset
-{
+struct Ecoset {
   public:
-    byte day; //1 octet
-    byte month;
-    int year; //2 octets
-    byte hour;
-    byte minute;
-    byte second;
-    int UTCoffset;
-    float MHTemp; //4 octets
-    float MHHum;
-    float MHPatm;
-    float MHRay;
-    float MHPDavis;
-    float MHTempWater;
-    float MHVit;
-    float MHDir;
-    float MHPluie;
-    //float MHWaterVolt;
-    //float MHWaterColonne;
-    float MHWaterHauteur;
+    //floats first to reduce memory lost
+    float MHTemp = -99.0;                   //4 octets
+    float MHHum = -1.0;
+    float MHPatm = 0.0;
+    #if MOD_VEML7700
+      float MHRay = -1.0;
+    #endif
+    #if MOD_PYRANO
+      float MHPDavis = -1.0;
+    #endif
+    #if MOD_DS18B20
+      float MHTempWater = -99.0;
+    #endif
+    #if MOD_VENT
+      float MHVit = -1.0;
+      float MHDir = -1.0;
+      float MHVmx = -1.0;
+    #endif
+    #if MOD_PLUIE
+      float MHPluie = -1.0;
+    #endif
+    #if MOD_ADS_KIT0139
+      float MHWaterHauteur = -1.0;
+      //float MHWaterVolt;
+      //float MHWaterColonne;
+    #endif
+    #if NB_SEN0600_PROBE
+      // Array to store probes values
+      float MHTempSEN0600[NB_SEN0600_PROBE]; 
+      float MHHumSEN0600[NB_SEN0600_PROBE];
+    #endif
 
-    // Default builder that resets everything to zero
-    Ecoset() :
-      day(0), month(0), year(0), hour(0), minute(0), second(0), UTCoffset(0),
-      MHTemp(0), MHHum(0), MHPatm(0), MHRay(0), MHPDavis(0),
-      MHTempWater(0),MHVit(0), MHDir(0), MHPluie(0),
-      //MHWaterVolt(0), MHWaterColonne(0),
-      MHWaterHauteur(0) {}
+    //ints after floats to reduce memory lost
+    int UTCoffset = 0;
+    int year = 0;                       //2 octets
+
+    //bytes at last position to reduce memory lost
+    byte day = 0;                       //1 octet
+    byte month = 0;
+    byte hour = 0;
+    byte minute = 0;
+    byte second = 0;
+
+    Ecoset() {
+      #if NB_SEN0600_PROBE
+        for(int i=0; i<NB_SEN0600_PROBE; i++) {
+          MHTempSEN0600[i] = -999.0;
+          MHHumSEN0600[i] = -999.0;
+        }
+      #endif
+    }
 };
 
 class BUFFER_PILE {
@@ -58,7 +82,7 @@ class BUFFER_PILE {
     BUFFER_PILE();
     void add_pile(const Ecoset& mydataset);
     bool read_pile(Ecoset& mydataset);
-    void next_pile();
+    void next_pile();                   //should be called just BEFORE add_pile() if only 1 last value is desired and not buffer functionality!
     byte available_pile();
     byte alert_full_pile();
     void debug_cpt();
@@ -67,8 +91,9 @@ class BUFFER_PILE {
 
   private:
 
-    byte buf_CR; // reading counter index
-    byte buf_CI; // insertion counter index
+    byte buf_CR;                        // reading counter index
+    byte buf_CI;                        // insertion counter index
+    byte full_elements;                 // nb pending elements in buffer
     Ecoset ecobuffer[NUM_BUFFERED];
     void inc_CI();
     void inc_CR();
