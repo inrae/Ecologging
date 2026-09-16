@@ -142,6 +142,7 @@ void CAPTEURS_METEO::acqVEML7700(){
 //++++++++++ Pyranometer Davis 6450 +++++++++
 // Pyrano init function
 void CAPTEURS_METEO::initPyrano(){
+    
   int rawValue = analogRead(PyranoPin);
   //Filtering if value 1023 i.e. sensor not connected and therefore pull-up value
   if(rawValue == 1023){Serial.print(F("## WARNING ! : Davis pyrano seems not to be connected!"));}

@@ -68,7 +68,7 @@ void setup() {
   
   #if MOD_KIM2
     Serial1.begin(9600);     // Serial for KIM2
-    kim2.initKim2("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");  //replace with your rconf key
+    kim2.initKim2("3d678af16b5a572078f3dbc95a1104e7");		//rconf key for CLS/Kineis module <min freq>,<max freq>,<modulation>,<rf level>
     kim2.powerOn();
     Serial.println("KIM2 READY");
   #endif

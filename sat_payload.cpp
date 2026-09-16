@@ -34,7 +34,7 @@ bool get_binary_payload(Ecoset dataset,char* sat_payload){
   packet.fields.marker = 0b001; // The value "1" on 3 bits
   packet.fields.date = dateValue;
   #if THP_CAPTEUR_COUNT > 0
-    packet.fields.temp = (int32_t)round(dataset.MHTemp*10) + 2000;  //1/10 °C precision offset 200
+    packet.fields.temp = (int32_t)round(dataset.MHTemp*10) + 2000;  //1/10 °C precision offset 2000
     packet.fields.humidity = (uint32_t)round(dataset.MHHum*10);     //1/10 % precision
   #endif
   #if MOD_BME280
