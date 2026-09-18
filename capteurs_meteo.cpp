@@ -378,7 +378,7 @@ void CAPTEURS_METEO::acqVent(){
   nbV++;
 
   Serial.print(VitesseMesure);Serial.print(F(" km/h\t"));
-  getHeading(CalDirection);Serial.println(F("\t"));
+  getHeading(CalDirection);Serial.print(F("\t"));
 }
 
 //++++++++++ DS18B20 Soil temperature ++++++++++

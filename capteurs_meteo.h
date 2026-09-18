@@ -63,20 +63,20 @@ P.Chaumeil 2026
 #include <TimerOne.h>               //Davis
 #include <OneWire.h>
 #include <DallasTemperature.h> 
-#include <Adafruit_ADS1X15.h>       //ADS1X15 ADC_4channel (Kit0139 water level)
+#include <Adafruit_ADS1X15.h>       //ADS1X15 ADC_4channel on I2C (Kit0139 water level)
 
 //parameters
 #define RainPin 6                   //Pluviometer Pin
 #define SHT31_ADDRESS   0x44        //SHT31
 
-#define WindSensorPin (9)           //The pin location of the anemometer sensor
+#define WindSensorPin 2             //The pin location of the anemometer sensor
 #define WindVanePin (A4)
 #define VaneOffset 0
 constexpr uint8_t INTEGRATION_TIME_SEC = 3; // Integration time in seconds (ex: 2, 3, 5, 10...)
 
 #define PyranoPin (A1)              //Pin location for Pyranometer
 #define RS485_DE_RE 27               //Pin for DE/RE RS485
-constexpr uint8_t DS18B20Pin = 2;            //Pin location for DS18B20 soil temperature
+constexpr uint8_t DS18B20Pin = 9;            //Pin location for DS18B20 soil temperature
 constexpr uint16_t WaterLevelInstall = 1000;  //Installation depth of kit0139 Water level in mm
 
 class CAPTEURS_METEO {

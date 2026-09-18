@@ -7,12 +7,13 @@
 
   //## acquisition periodicity ##
   const uint8_t SECONDES_CIBLES[] = {0, 20, 40};  //periodicity given acquisition
-  const uint8_t MINUTES_CIBLES[] = {0, 15, 30, 45};       //average calculation periodicity (Mean_integration should be change if MINUTES_CIBLES modified)
+  const uint8_t MINUTES_CIBLES[] = {0, 30};       //average calculation periodicity (Mean_integration should be change if MINUTES_CIBLES modified)
   #define AVG_INTEGRATION 30                      //periodicity in min published in mqtt payload
 
   //## param transmission ##
   #define MOD_KIM2 0
-
+  #define KIM2_RCONF_TOKEN "3d678af16b5a572078f3dbc95a1104e7" //rconf key for CLS/Kineis module <min freq>,<max freq>,<modulation>,<rf level> supplied by Kineis
+  
   #define MOD_SIM7600 0
   #define MY_TOPIC "meteo/testvent"      // Topic for the MQTT message (4G only), number of characters: 20
 

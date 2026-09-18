@@ -30,7 +30,7 @@ public:
     GNSS_RTC(uint8_t relayPin = 3,
              GsmDateTimeCallback gsmCallback = nullptr,
              unsigned long syncIntervalMs = 604800000UL,    // 7 days default 604800000UL
-             unsigned long retryIntervalMs = 6OOOOOUL); // 10 min default 600000UL
+             unsigned long retryIntervalMs = 600000UL); // 10 min default 600000UL
 
     bool begin();
     void update();      // To call in main loop()

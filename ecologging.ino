@@ -5,7 +5,7 @@
 //
 //philippe.chaumeil@inrae.fr _ Univ. Bordeaux, INRAE, BIOGECO, F-33610, Cestas, France
 //pierre.bordenave@inrae.fr _INRAE, UEFP, 33610 Cestas, France
-#define progversion "20260703"
+#define progversion "20260918"
 #define DO_CONFIG_CHECKS
 
 #include <SPI.h>
@@ -18,7 +18,8 @@
 #include <math.h>      //required for wind speed
 #include "TimerOne.h"  //required for DAVIS sensor
 
-#include "config.h" //configuration file
+#include "config.h"    //configuration file
+#include "GNSS_RTC.h"  //GPS and RTC
 
 //## buffer pile ##
 #include "buffer_pile.h"
@@ -27,10 +28,10 @@ BUFFER_PILE mypile;
 unsigned long intervalPubTimer = 0;
 
 //## SAT ##
+#if MOD_KIM2
 #include "sat_payload.h"  // encode file
 #include "KIM2.h"  //
-#if MOD_KIM2
-  KIM2 kim2(Serial1, 4, 5);
+  KIM2 kim2(Serial1, KIM2_POWER_PIN, KIM2_RELAY_PIN);
   char hexString[33];
   const unsigned long kim2PubInterval = 120000;
 #endif
@@ -42,6 +43,17 @@ unsigned long intervalPubTimer = 0;
 #endif
 char mypayload[512] = {0};
 
+//## RTC & GPS ##
+#if MOD_SIM7600
+  DateTime* getGsmDateTimeWrapper() {   // Callback for SIM7600 (if activated)
+      return sim7600mqtt.get_gsm_datetime();
+  }
+#else
+  #define getGsmDateTimeWrapper nullptr
+#endif
+GNSS_RTC rtcManager(RELAY_PIN_GNSS, getGsmDateTimeWrapper); // Time manager Instanciation
+
+//## load sensors ##
 #include "ecologging.h"
 
 #include "capteurs_meteo.h"
@@ -68,16 +80,23 @@ void setup() {
   
   #if MOD_KIM2
     Serial1.begin(9600);     // Serial for KIM2
-    kim2.initKim2("3d678af16b5a572078f3dbc95a1104e7");		//rconf key for CLS/Kineis module <min freq>,<max freq>,<modulation>,<rf level>
+    kim2.initKim2(KIM2_RCONF_TOKEN);		//rconf key for CLS/Kineis module <min freq>,<max freq>,<modulation>,<rf level>
     kim2.powerOn();
     Serial.println("KIM2 READY");
   #endif
   
+  //I2C bus initialization
   Wire.begin();
   Wire.setClock(100000);
 
-  //initialization of sensors and modules
-  initRTC();
+  //Initializing the time manager (DS3231 + GNSS/GSM)
+  if (!rtcManager.begin()) {
+      Serial.println(F("Fatal error: Unable to initialize the RTC!"));
+      while (1); // Stop if the physical RTC does not respond
+  }
+
+  //Sensors and modules initialization
+  //initRTC();
 
   #if MOD_BME280
     Capteurs.initBME280();
@@ -128,7 +147,10 @@ void setup() {
 
 //++++++++++++++++++++++++++++++ Main infinite loop +++++++++++++++++++++++++++++++++++
 void loop() {
-  DateTime now = RTC.now();  //read RTC DS3231
+  //### Time management ###
+  rtcManager.update();
+
+  DateTime now = rtcManager.getNow();  //read RTC DS3231
   int currentSecond = now.second();
   int currentMinute = now.minute();
   int currentHour = now.hour();
@@ -178,12 +200,6 @@ void loop() {
     //launch SIM7600MQTT library
     sim7600mqtt.lib_MQTT();
   
-    //### Time management ###
-    //try update RTC periodically
-    if(millis() - DS3231RTC_update > DS3231RTC_update_interval){
-      if(update_RTC()){DS3231RTC_update_interval = DS3231RTC_normal_update_interval;}
-      DS3231RTC_update = millis();
-    }
   #endif
 
   //### start acquistion ###
@@ -196,7 +212,9 @@ void loop() {
       dernierTriggerSeconde = currentSecondHour;
     
       //acquisition & monitoring
-      printFormatedDateTime(now);
+      Serial.print(F("[ACQ 20s] "));
+      rtcManager.printFormattedDateTime();
+
       #if MOD_BME280
         #if THP_MERGE
           Capteurs.acqBME280(1);
@@ -227,6 +245,7 @@ void loop() {
       #if NB_SEN0600_PROBE > 0
         Capteurs.acqSEN0600launch();
       #endif
+      Serial.println("");
       //Writing the ECOLOGING file to the micro SD card every XX seconds
       WriteToFileMeasure(now);
 
@@ -248,7 +267,7 @@ void loop() {
       #if MOD_PLUIE
         Capteurs.setHcumulPluvio();
       #endif
-      printFormatedDateTime(now);
+      rtcManager.printFormattedDateTime();
       MoyenneToSerial();
 
       WriteToFileMoyenne(now);
@@ -522,7 +541,7 @@ void MoyenneToSerial(){
 
 //Function to create header.csv (measurements)
 void entete_tab_mesures(){
-  fichier20s = SD.open(DATA_FILENAME, FILE_WRITE); //warning limitation in filename length.
+  File fichier20s = SD.open(DATA_FILENAME, FILE_WRITE); //warning limitation in filename length.
   fichier20s.print(F("Date et heure"));fichier20s.print(F(";"));
   #if THP_CAPTEUR_COUNT > 0
     fichier20s.print(F("HR_%"));fichier20s.print(F(";"));
@@ -561,7 +580,11 @@ void entete_tab_mesures(){
 
 //Function to create entete.csv (averages)
 void entete_tab_moyennes(){
-  MoyH = SD.open(MOY_FILENAME, FILE_WRITE); //warning limitation in filename length.
+  File MoyH = SD.open(MOY_FILENAME, FILE_WRITE); //warning limitation in filename length.
+  if (!MoyH) {
+    Serial.println(F("[SD] Error: Unable to create the averages header!"));
+    return;
+  }
   MoyH.print(F("Date et heure"));MoyH.print(F(";"));
   #if MOD_PLUIE
     MoyH.print(F("CumulPluie en mm"));MoyH.print(F(";"));
@@ -608,9 +631,15 @@ void entete_tab_moyennes(){
 //Writing the ECOLOGING measurements file to the micro SD card every XX seconds
 void WriteToFileMeasure(DateTime now){
   File fichier20s = SD.open(DATA_FILENAME,FILE_WRITE);
+  if (!fichier20s) {
+    Serial.println(F("[SD] Error opening the measurement file!"));
+    return;
+  }
+
   char DT_template[] = "DD/MM/YYYY hh:mm:ss ; ";
   now.toString(DT_template);
   fichier20s.print(DT_template);
+
   #if THP_CAPTEUR_COUNT > 0
     fichier20s.print(Capteurs.valHumid(), 1); fichier20s.print(F(";"));
     fichier20s.print(Capteurs.valTemp(), 1); fichier20s.print(F(";"));
@@ -649,6 +678,10 @@ void WriteToFileMeasure(DateTime now){
 //Writing the ECOLOGING averages file to the micro SD card
 void WriteToFileMoyenne(DateTime now){
   File MoyH = SD.open(MOY_FILENAME,FILE_WRITE);
+  if (!MoyH) {
+    Serial.println(F("[SD] Error: Unable to open the averages file!"));
+    return;
+  }
   char DT_template[] = "DD/MM/YYYY hh:mm:ss";
   now.toString(DT_template);
   MoyH.print(DT_template); MoyH.print(" ; ");
