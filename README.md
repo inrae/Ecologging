@@ -47,6 +47,80 @@ _ SIM7600MQTTparam.h > server connection information settings
 _ buffer_pile.h > number of data points kept in buffer memory (NUM_BUFFERED)
 _ sensor_meteo.h > sensor settings (GPIO used)
 
+## GPIO pinout
+| **GPIO** | **Reserved** | **Reserved** | **Ecologging 20260918** | **Remarks** |
+| :--- | :--- | :--- | :--- | :--- |
+| **D0** | :orange_circle: UART0_RX | _ | _ | _ |
+| **D1** | :orange_circle: UART0_TX | _ | _ | _ |
+| <mark>**D2**</mark> | _ | :black_circle: INT4 | :dash: Anemometer | _ |
+| **<mark>D3</mark>** | _ | :black_circle: INT5 | :watch: GNSS relay command (plug) | _ |
+| **D4** | _ | _ | :satellite: KIM2 Sat Power command | :purple_square: |
+| **<mark>D5</mark>** | _ | _ | :satellite: SIM7600 4G / KIM2 relay (plug) | :green_square: :purple_square: |
+| **<mark>D6</mark>** | _ | _ | :cloud_with_rain: Rain gauge | _ |
+| **D7** | _ | _ | :satellite: KIM2 Sat TX (jumper) | :purple_square: |
+| **D8** | _ | _ | :satellite: KIM2 Sat RX (jumper) | :purple_square: |
+| **<mark>D9</mark>** | _ | _ | :thermometer: DS18B20 | _ |
+| D10 | :brown_circle: SPI_SS | _ | _ | _ |
+| D11 | :brown_circle: SPI_MOSI | Timer1 | _ | :dash: *Anemometer/Timer1* |
+| **D12** | :brown_circle: SPI_MISO | Timer1 | :satellite: SIM7600 4G Power (fix) :purple_square: | :dash: *Anemometer/Timer1* |
+| D13 | :brown_circle: SPISCK | Integrated LED | _ | _ |
+| **<mark>D14</mark>** | :orange_circle: UART3_TX | _ | :seedling: Soil Probe RSS485 | _ |
+| **<mark>D15</mark>** | :orange_circle: UART3_RX | _ | :seedling: Soil Probe RSS485 | _ |
+| D16 | :orange_circle: UART2_TX | _ | _ | _ |
+| D17 | :orange_circle: UART2_RX | _ | _ | _ |
+| **D18** | :orange_circle: UART1_TX | :black_circle: INT3 | :satellite: SIM7600 4G / Kim2 Sat RX | :green_square: :purple_square: |
+| **D19** | :orange_circle: UART1_RX | :black_circle: INT2 | :satellite: SIM7600 4G / Kim2 Sat TX | :green_square: :purple_square: |
+| **<mark>D20</mark>** | :yellow_circle: I2C_SDA | :black_circle: INT1 | :repeat: I2C capteurs | _ |
+| **<mark>D21</mark>** | :yellow_circle: I2C_SCL | :black_circle: INT0 | :repeat: I2C capteurs | _ |
+| D22 | _ | _ | _ | _ |
+| D23 | _ | _ | _ | _ |
+| D24 | _ | _ | _ | _ |
+| D25 | _ | _ | _ | _ |
+| D26 | _ | _ | _ | _ |
+| <mark>**D27**</mark> | _ | _ | :seedling: Soil Probe RSS485 | _ |
+| D28 | _ | _ | _ | _ |
+| D29 | _ | _ | _ | _ |
+| D30 | _ | _ | _ | _ |
+| D31 | _ | _ | _ | _ |
+| D32 | _ | _ | _ | _ |
+| D33 | _ | _ | _ | _ |
+| D34 | _ | _ | _ | _ |
+| D35 | _ | _ | _ | _ |
+| D36 | _ | _ | _ | _ |
+| D37 | _ | _ | _ | _ |
+| D38 | _ | _ | _ | _ |
+| D39 | _ | _ | _ | _ |
+| D40 | _ | _ | _ | _ |
+| D41 | _ | _ | _ | _ |
+| D42 | _ | _ | _ | _ |
+| D43 | _ | _ | _ | _ |
+| D44 | _ | _ | _ | _ |
+| D45 | _ | _ | _ | _ |
+| D46 | _ | _ | _ | _ |
+| D47 | _ | _ | _ | _ |
+| D48 | _ | _ | _ | _ |
+| D49 | _ | _ | _ | _ |
+| **<mark>D50</mark>** | :yellow_circle: SPI_MISO | _ | :floppy_disk: uSD | _ |
+| **<mark>D51</mark>** | :yellow_circle: SPI_MOSI | _ | :floppy_disk: uSD | _ |
+| **<mark>D52</mark>** | :yellow_circle: SPISCK | _ | :floppy_disk: uSD | _ |
+| **<mark>D53</mark>** | :yellow_circle: SPI_SS | _ | :floppy_disk: uSD | _ |
+| A0 | _ | _ | _ | _ |
+| **<mark>A1</mark>** | _ | _ | :high_brightness: Pyranometer | _ |
+| A2 | _ | _ | _ | _ |
+| A3 | _ | _ | _ | _ |
+| **<mark>A4</mark>** | _ | _ | :compass: Weathervane | _ |
+| A5 | _ | _ | _ | _ |
+| A6 | _ | _ | _ | _ |
+| A7 | _ | _ | _ | _ |
+| A8 | _ | _ | _ | _ |
+| A9 | _ | _ | _ | _ |
+| A10 | _ | _ | _ | _ |
+| A11 | _ | _ | _ | _ |
+| A12 | _ | _ | _ | _ |
+| A13 | _ | _ | _ | _ |
+| A14 | _ | _ | _ | _ |
+| A15 | _ | _ | _ | _ |
+
 ## Project information
 Toute la documentation est disponible sur HAL [https://hal-lara.archives-ouvertes.fr/search/index?q=ecologging](https://hal-lara.archives-ouvertes.fr/search/index?q=ecologging)
 
