@@ -14,6 +14,32 @@ The station uses an Arduino Mega 2560 microcontroller paired with an SD card for
 Transmission uses the MQTT protocol with SSL support and login/password authentication.
 A configurable memory buffer is used to store data to be transmitted in case of a temporary loss of the 4G.
 
+## Capteurs supportés / Supported Sensors
+:thermometer: :droplet:
+- BME280 / ADA2652  (T°, Humidity, P°)
+- SHT31 / SEN0385   (T°, Humidity)
+- SHT20 / SEN0227   (T°, Humidity)
+:high_brightness:
+- VEML7700 / ADA4162  (Luminosity Luxmeter)
+- Davis 6450          (Pyranometer)
+:seedling:
+- DS18B20   (T° waterproof)
+- SEN0308   (capacitive soil moisture sensor)
+- SENO600   (T° & conductivity soil moisture sensor)
+:cloud_with_rain: :droplet:
+- LEXCA001  (tipping rain gauge)
+- Gravity KIT0139   (Water Level)
+:compass: :dash:
+- Davis 6410  (Anemometer / Weathervane)
+:floppy_disk:
+- microSD DFR0229
+:watch:
+- DS3231 / ADA3013  (RTC)
+- Gravity TEL0157   (GNSS GPS)
+:satellite:
+- SIM7600G-H / TEL0124  (4G,LTE,3G,2G GSM shield)
+- KIM2 Kineis module    (satellite transmission)
+
 ## Badges
 ![Demo Image](images/station_meteo_DIY.png)
 
