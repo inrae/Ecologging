@@ -58,7 +58,6 @@ void GNSS_RTC::triggerSync() {
 }
 
 void GNSS_RTC::update() {
-#if MOD_GPS
 
     // Verification of frequency (e.g., once a week)
     if (_state == IDLE){
@@ -68,6 +67,7 @@ void GNSS_RTC::update() {
         }
     }
 
+#if MOD_GPS
     // Non-blocking state machine, active only if GPS support is compiled in.
     switch (_state) {
         case IDLE:
@@ -140,7 +140,7 @@ void GNSS_RTC::update() {
                     _nextInterval = _syncInterval;
                 } else {
                     Serial.println(F("[GNSS_RTC] Full sync failure. Retrying in retry interval."));
-                    _nextInterval = _retryInterval; // Échec total : reprogramme à 48h
+                    _nextInterval = _retryInterval;
                 }
                 
                 stopGNSS();
@@ -228,10 +228,21 @@ bool GNSS_RTC::adjustWithGSM() {
 #if MOD_SIM7600
     if (_getGsmDateTime != nullptr) {
         DateTime* gsmDateTime = _getGsmDateTime();
+        // Serial.print(F("[GNSS_RTC] callback function return : "));
+        // printFormattedDateTime(gsmDateTime);
+        // Serial.println();
+
+
         if (gsmDateTime != nullptr) {
-            _rtc.adjust(*gsmDateTime);
-            Serial.println(F("[GNSS_RTC] GSM synchronization successful."));
-            return true;
+            if (gsmDateTime->year() >= 2025 && gsmDateTime->year() <= 2050) {
+                _rtc.adjust(*gsmDateTime);
+                Serial.println(F("[GNSS_RTC] GSM synchronization successful."));
+                return true;
+            } else {
+                Serial.print(F("[GNSS_RTC] Rejected invalid GSM DateTime: "));
+                printFormattedDateTime(gsmDateTime);
+                Serial.println();
+            }
         }
     }
     Serial.println(F("[GNSS_RTC] GSM synchronization failed (null DateTime or callback not provided)."));
@@ -243,16 +254,16 @@ DateTime GNSS_RTC::getNow() {
     return _rtc.now();
 }
 
-void GNSS_RTC::getFormattedDateTime(char* buffer, size_t size) {
-    DateTime now = _rtc.now();
+void GNSS_RTC::getFormattedDateTime(char* buffer, size_t size, const DateTime* dt) {
+    DateTime targetDt = (dt != nullptr) ? *dt : _rtc.now();
     snprintf(buffer, size, "%02d/%02d/%04d %02d:%02d:%02d ", 
-             now.day(), now.month(), now.year(), 
-             now.hour(), now.minute(), now.second());
+             targetDt.day(), targetDt.month(), targetDt.year(), 
+             targetDt.hour(), targetDt.minute(), targetDt.second());
 }
 
-void GNSS_RTC::printFormattedDateTime() {
+void GNSS_RTC::printFormattedDateTime(const DateTime* dt) {
     char buffer[25];
-    getFormattedDateTime(buffer, sizeof(buffer));
+    getFormattedDateTime(buffer, sizeof(buffer), dt);
     Serial.print(buffer);
 }
 

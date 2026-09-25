@@ -5,7 +5,7 @@
 //
 //philippe.chaumeil@inrae.fr _ Univ. Bordeaux, INRAE, BIOGECO, F-33610, Cestas, France
 //pierre.bordenave@inrae.fr _INRAE, UEFP, 33610 Cestas, France
-#define progversion "20260918"
+#define progversion "20260925"
 #define DO_CONFIG_CHECKS
 
 #include <SPI.h>
@@ -28,7 +28,7 @@ BUFFER_PILE mypile;
 unsigned long intervalPubTimer = 0;
 
 //## SAT ##
-#if MOD_KIM2
+#if MOD_KIM2 == 1
 #include "sat_payload.h"  // encode file
 #include "KIM2.h"  //
   KIM2 kim2(Serial1, KIM2_POWER_PIN, KIM2_RELAY_PIN);
@@ -38,13 +38,13 @@ unsigned long intervalPubTimer = 0;
 
 //## MQTT ##
 #include "SIM7600MQTT.h"
-#if MOD_SIM7600
+#if MOD_SIM7600 == 1
   SIM7600MQTT sim7600mqtt;
 #endif
 char mypayload[512] = {0};
 
 //## RTC & GPS ##
-#if MOD_SIM7600
+#if MOD_SIM7600 == 1
   DateTime* getGsmDateTimeWrapper() {   // Callback for SIM7600 (if activated)
       return sim7600mqtt.get_gsm_datetime();
   }
@@ -82,7 +82,7 @@ void setup() {
     Serial1.begin(9600);     // Serial for KIM2
     kim2.initKim2(KIM2_RCONF_TOKEN);		//rconf key for CLS/Kineis module <min freq>,<max freq>,<modulation>,<rf level>
     kim2.powerOn();
-    Serial.println("KIM2 READY");
+    Serial.println(F("KIM2 READY"));
   #endif
   
   //I2C bus initialization
@@ -105,6 +105,8 @@ void setup() {
     Capteurs.initSHT31();
   #elif MOD_SHT20
     Capteurs.initSHT20();
+  #elif MOD_DAVIS_6830
+    Capteurs.initDavis6830();
   #endif
 
   initmicroSD();
@@ -165,7 +167,7 @@ void loop() {
       intervalPubTimer = millis();
       if(mypile.read_pile(dataset)){
         get_binary_payload(dataset, hexString);
-        Serial.print("SAT PAYLOAD = "); Serial.println(hexString);
+        Serial.print(F("SAT PAYLOAD = ")); Serial.println(hexString);
         kim2.sendPayload(hexString);
       }
     }
@@ -216,7 +218,7 @@ void loop() {
       rtcManager.printFormattedDateTime();
 
       #if MOD_BME280
-        #if THP_MERGE
+        #if THP_MERGE == 1
           Capteurs.acqBME280(1);
         #else
           Capteurs.acqBME280();
@@ -226,6 +228,8 @@ void loop() {
         Capteurs.acqSHT31();
       #elif MOD_SHT20
         Capteur.acqSHT20();
+      #elif MOD_DAVIS_6830
+        Capteurs.acqDavis6830();
       #endif
       #if MOD_VEML7700
         Capteurs.acqVEML7700();

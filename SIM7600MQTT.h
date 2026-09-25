@@ -38,6 +38,7 @@ and finaly a pool of function in charge of sending AT commands.
 #define TIMEOUT_SESSION 300000       //5min
 #define CHECK_NETWORK 960000         //16min # 900000 periodic relaunch to check network
 #define GET_NET_TIME_PERIOD 1200000  // 20 min get time from network (NTP method)
+#define GET_NET_TIME_PERIOD_SHORT 60000 // 1min get time from network (NTP method) in speed mode
 #define HARD_RESET_INTERVAL 1800000  // 30 min min interval between successive hard reset
 
 //define settings AT cmd
@@ -143,6 +144,8 @@ private:
   byte processMQTT = 0;  //process status of current global MQTT action #0 nothing running #1 running MQTT request #2 finished & success #3 failed to process MQTT request #4 Must relaunch process
 
   byte waitingTry = 0;  // Try number dialog with module
+
+  bool is_time_synced = false;
 
   //____ timer ____
   unsigned long netTestTimer = 0;                       //timer for network connection test

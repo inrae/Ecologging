@@ -18,6 +18,7 @@ volatile float CAPTEURS_METEO::MaxSpeedMesure = 0.0;
 //+++++++++++ Constructor +++++++++++
 CAPTEURS_METEO::CAPTEURS_METEO(uint16_t WLinstall, uint8_t pin_DS18B20)
   : sht31(SHT31_ADDRESS, &Wire),   //Initialization in the initialization list
+  Davis6830(Davis_6830_dataPin, Davis_6830_clockPin),
   oneWire_Teau(pin_DS18B20),
   sensor_Teau(&oneWire_Teau),
   _WLinstall(WLinstall)
@@ -168,7 +169,7 @@ void CAPTEURS_METEO::acqPyrano(){
   SommeLW += PyranoMesure;
   nbLW++;
 
-  Serial.print(PyranoMesure);Serial.print("W/m²\t");
+  Serial.print(PyranoMesure);Serial.print(F("W/m²\t"));
 }         
 
 //++++++++++ BME280 ++++++++++
@@ -202,7 +203,7 @@ void CAPTEURS_METEO::acqBME280(bool Ponly){
     Serial.print(HumidMesure,1);Serial.print(F(" % H_env bme280\t"));// HR en %
   }
 
-  Serial.print(PatmMesure, 1);Serial.print(" mbar P_env\t");// P en mbar
+  Serial.print(PatmMesure, 1);Serial.print(F(" mbar P_env\t"));// P en mbar
 }
 
 //++++++++++ SHT31 ++++++++++
@@ -211,7 +212,7 @@ void CAPTEURS_METEO::initSHT31(){
   if(sht31.begin() == false){Serial.println(F("SHT31 device address or reset pb."));}
 
   uint16_t stat = sht31.readStatus();
-  Serial.print(stat, HEX);Serial.println();
+  Serial.println(stat, HEX);
 }
 
 // Acquisition SHT31
@@ -243,16 +244,58 @@ void CAPTEURS_METEO::initSHT20(){
 
 // Acquisition SHT20
 void CAPTEURS_METEO::acqSHT20(){
-  TempMesure = sht20.readTemperature();   //SHT20/SEN0227
-  HumidMesure = sht20.readHumidity();     //SHT20/SEN0227
-  //summation
-  SommeT += TempMesure;
-  SommeHR += HumidMesure;
-  nbT++;
-  nbHR++;
-  
-  Serial.print(HumidMesure, 1);Serial.print(F("% H_env sht20\t"));// HR en %
-  Serial.print(TempMesure, 1);Serial.print(F("*C T_env sht20\t"));// T en °C
+  float temp = sht20.readTemperature();
+  float humd = sht20.readHumidity();
+
+  if (temp != 998.0 && temp != 999.0) {
+    TempMesure = temp;
+    SommeT += TempMesure;
+    nbT++;
+    Serial.print(TempMesure, 1); Serial.print(F("*C T_env sht20\t"));
+  } else {
+    Serial.print(F("NAN *C T_env sht20\t"));
+  }
+
+  // --- Gestion de l'Humidité ---
+  if (humd != 998.0 && humd != 999.0) {
+    HumidMesure = humd;
+    SommeHR += HumidMesure;
+    nbHR++;
+    Serial.print(HumidMesure, 1); Serial.print(F("% H_env sht20\t"));
+  } else {
+    Serial.print(F("NAN % H_env sht20\t"));
+  }
+}
+
+//++++++++++ Davis Sensirion 6830 ++++++++++
+// Init function DAVIS6830
+void CAPTEURS_METEO::initDavis6830(){
+  uint16_t stat = Davis6830.readStatus();
+  Serial.print(F("Davis 6830 Status: 0x"));
+  Serial.println(stat, HEX);
+}
+
+// Acquisition DAVIS6830
+void CAPTEURS_METEO::acqDavis6830(){
+  float temp_c = Davis6830.readTemperatureC();
+  float humidity = Davis6830.readHumidity();
+
+  if (!isnan(temp_c)) {
+    TempMesure = temp_c;
+    SommeT += TempMesure;
+    nbT++;
+    Serial.print(TempMesure, 1);Serial.print(F("*C T_env Davis\t"));// T en °C
+  }else{
+    Serial.print(F("NAN *C T_env Davis\t"));
+  }
+  if (!isnan(humidity)) {
+    HumidMesure = humidity;
+    SommeHR += HumidMesure;
+    nbHR++;
+    Serial.print(HumidMesure, 1);Serial.print(F("% H_env Davis\t"));// HR en %
+  }else{
+    Serial.print(F("NAN % H_env Davis\t"));
+  }
 }
 
 //++++++++++ Tilting Pluviometer ++++++++++
@@ -303,15 +346,17 @@ void CAPTEURS_METEO::isr_timer() {
     // WindSpeedMPH = Rotations * (2.25/(float)INTEGRATION_TIME_SEC);
     // WindSpeedKMH = WindSpeedMPH * 1.60934;
 
-    VitesseMesure = Rotations * WIND_FACTOR;
-    
+    //Protects the reading and resetting of Rotations to prevent corruption by isr_rotation.
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+      VitesseMesure = Rotations * WIND_FACTOR;
+      Rotations = 0;
+    }
     //store max speed
     if (VitesseMesure > MaxSpeedMesure) {
       MaxSpeedMesure = VitesseMesure;
     }
     
     // Reset count for next sample
-    Rotations = 0;
     TimerCount = 0;
   }
 }
@@ -419,7 +464,7 @@ void CAPTEURS_METEO::acqADS_kit0139(){
   //Serial.print(_WLinstall, 1);Serial.print(F(" WLinstall \t"));
   Serial.print(WaterVoltMesure, 3);Serial.print(F(" Volt \t"));
   Serial.print(WaterColonneMesure, 3);Serial.print(F(" WCol mm \t"));
-  Serial.print(WaterHauteurMesure, 1);Serial.println(F(" WL mm \t"));
+  Serial.print(WaterHauteurMesure, 1);Serial.print(F(" WL mm \t"));
 }
 
 //++++++++++ RS485 SEN0600 ++++++++++

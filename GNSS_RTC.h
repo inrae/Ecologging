@@ -30,7 +30,7 @@ public:
     GNSS_RTC(uint8_t relayPin = 3,
              GsmDateTimeCallback gsmCallback = nullptr,
              unsigned long syncIntervalMs = 604800000UL,    // 7 days default 604800000UL
-             unsigned long retryIntervalMs = 600000UL); // 10 min default 600000UL
+             unsigned long retryIntervalMs = 120000UL);     // 2 min default 120000UL
 
     bool begin();
     void update();      // To call in main loop()
@@ -38,8 +38,8 @@ public:
 
     // usefull RTC methods
     DateTime getNow();
-    void getFormattedDateTime(char* buffer, size_t size);
-    void printFormattedDateTime();
+    void getFormattedDateTime(char* buffer, size_t size, const DateTime* dt = nullptr);
+    void printFormattedDateTime(const DateTime* dt = nullptr);
 
     bool adjustWithGSM();
 

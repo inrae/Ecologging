@@ -55,11 +55,13 @@ P.Chaumeil 2026
 #define CAPTEURS_METEO_h
 
 #include <Wire.h>
+#include <util/atomic.h>
 #include <HardwareSerial.h>
 #include "DFRobot_VEML7700.h"       //VEML7700//measure lux en VEML7700
 #include "cactus_io_BME280_I2C.h"   //BME280
 #include "SHT31.h"                  //SHT31
 #include "DFRobot_SHT20.h"          //SHT20/SEN0227
+#include "sensirion.h"              //Davis 6830
 #include <TimerOne.h>               //Davis
 #include <OneWire.h>
 #include <DallasTemperature.h> 
@@ -78,6 +80,9 @@ constexpr uint8_t INTEGRATION_TIME_SEC = 3; // Integration time in seconds (ex: 
 #define RS485_DE_RE 27               //Pin for DE/RE RS485
 constexpr uint8_t DS18B20Pin = 9;            //Pin location for DS18B20 soil temperature
 constexpr uint16_t WaterLevelInstall = 1000;  //Installation depth of kit0139 Water level in mm
+
+#define Davis_6830_dataPin 22       //Davis sensirion 6830 data pin
+#define Davis_6830_clockPin 23      //Davis sensirion 6830 clock pin
 
 class CAPTEURS_METEO {
 
@@ -142,6 +147,10 @@ public:
   //++++++++++ SHT20/SEN0227 ++++++++++
   void initSHT20();                         //Initialisation function SHT20
   void acqSHT20();                          //Acquisition SHT20 (T°, Hum)
+
+  //++++++++++ Davis Sensirion 6830 +++++++++
+  void initDavis6830();                     //Initialisation function Davis 6830
+  void acqDavis6830();                      //Acquisition Davis 6830 (T°, Hum)
 
   //++++++++++ Pluviometer ++++++++++
   void initPluvio();                        //Initialisation function Pluviometer
@@ -230,6 +239,9 @@ private:
 
   //++++++++++ SHT20/SEN0227 ++++++++++
   DFRobot_SHT20    sht20;
+
+  //++++++++++ Davis Sensirion 6830 +++++++++
+  sensirion Davis6830;
 
   //++++++++++ Pluviometer ++++++++++
   bool bucketPositionA = false;             // one of the two positions of tipping-bucket               

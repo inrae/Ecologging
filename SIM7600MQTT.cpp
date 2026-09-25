@@ -112,7 +112,7 @@ DateTime *SIM7600MQTT::get_gsm_datetime() {
   DateTime now = rtc_sim7600.now();
 
   // check if datetime retrieve is default or from gsm provider
-  if (now.year() == 2080) {
+  if (now.year() < 2025 || now.year() > 2050) {
     if (gsm_datetime != nullptr) {
       delete gsm_datetime;  // release old object if necessary
       gsm_datetime = nullptr;
@@ -434,6 +434,7 @@ void SIM7600MQTT::resetBootState() {
   myserial->end();
   initSIM7600();
   netTestTimer = millis();
+  is_time_synced = false;
 }
 
 //reset to search network conditions
@@ -768,17 +769,21 @@ bool SIM7600MQTT::launchAtCmdMQTT() {
   //periodic command to launch when not busy
   if (networkready && processMQTT == 0){
     #if SYNC_NTP_DATETIME == 1
-      unsigned long mylimit = GET_NET_TIME_PERIOD;
-      DateTime* currentDateTime = get_gsm_datetime();
-      if (currentDateTime == nullptr) {mylimit = 300000;} //shortens the delay if there is no time synchronization
+
+      unsigned long mylimit = is_time_synced ? GET_NET_TIME_PERIOD : GET_NET_TIME_PERIOD_SHORT;
       if(millis() - last_nettime_request > mylimit){
+        DateTime* currentDateTime = get_gsm_datetime();
+        is_time_synced = (currentDateTime != nullptr);
+
         resetAtState();
         soloMQTT = true;
         currentStepSoloMQTT = 0;
         periodicStep(currentStepSoloMQTT);
+
         last_nettime_request = millis();
         return true;
       }
+
     #endif
   }
 

@@ -20,6 +20,7 @@ A configurable memory buffer is used to store data to be transmitted in case of 
 - BME280 / ADA2652  (T°, Humidity, P°)
 - SHT31 / SEN0385   (T°, Humidity)
 - SHT20 / SEN0227   (T°, Humidity)
+- Davis 6830        (T°, Humidity)
 
 ***Radiation*** :high_brightness:
 - VEML7700 / ADA4162  (Luminosity Luxmeter)
@@ -32,10 +33,13 @@ A configurable memory buffer is used to store data to be transmitted in case of 
 
 ***Rain & Water level*** :cloud_with_rain: :droplet:
 - LEXCA001  (tipping rain gauge)
+- Davis 6466    (tipping rain gauge)
+- Campbell ARG100   (tipping rain gauge)
 - Gravity KIT0139   (Water Level)
 
 ***Wind*** :compass: :dash:
 - Davis 6410  (Anemometer / Weathervane)
+- Davis 6415  (Anemometer / Weathervane 2D)
 
 ***Datas*** :floppy_disk:
 - microSD DFR0229
